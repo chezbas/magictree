@@ -1,0 +1,8 @@
+[info] Sikuli vision engine loaded.
+[info] Mac OS X utilities loaded.
+[info] VDictProxy loaded.
+[log] App.focus Terminal(0) #0
+[log] openApp: "Terminal"
+[log] ?+TYPE "n"
+[log] TYPE "
+"

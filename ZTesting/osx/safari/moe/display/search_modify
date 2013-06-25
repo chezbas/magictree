@@ -1,0 +1,11 @@
+#Launchpad
+/System/Library/Frameworks/JavaVM.framework/Versions/CurrentJDK/Commands/java -d32 -Dpython.path=Lib/ -jar /Applications/Sikuli-IDE.app/Contents/Resources/Java/sikuli-ide.jar -r /Volumes/www/magictree/ZTesting/osx/safari/moe/display/launchpad.sikuli > /Volumes/www/magictree/ZTesting/osx/safari/moe/display/launchpad.log
+
+#No language forced
+/System/Library/Frameworks/JavaVM.framework/Versions/CurrentJDK/Commands/java -d32 -Dpython.path=Lib/ -jar /Applications/Sikuli-IDE.app/Contents/Resources/Java/sikuli-ide.jar -r /Volumes/www/magictree/ZTesting/osx/safari/moe/display/search_modify.sikuli --args "http://tree.dtravel/" "http://pma.dtravel/" "" "3"> /Volumes/www/magictree/ZTesting/osx/safari/moe/display/search_modify_DEFAULT.log
+
+#English forced
+/System/Library/Frameworks/JavaVM.framework/Versions/CurrentJDK/Commands/java -d32 -Dpython.path=Lib/ -jar /Applications/Sikuli-IDE.app/Contents/Resources/Java/sikuli-ide.jar -r /Volumes/www/magictree/ZTesting/osx/safari/moe/display/search_modify.sikuli --args "http://tree.dtravel/" "http://pma.dtravel/" "ENG" "3"> /Volumes/www/magictree/ZTesting/osx/safari/moe/display/search_modify_ENG.log
+
+#French forced
+/System/Library/Frameworks/JavaVM.framework/Versions/CurrentJDK/Commands/java -d32 -Dpython.path=Lib/ -jar /Applications/Sikuli-IDE.app/Contents/Resources/Java/sikuli-ide.jar -r /Volumes/www/magictree/ZTesting/osx/safari/moe/display/search_modify.sikuli --args "http://tree.dtravel/" "http://pma.dtravel/" "FRA" "3"> /Volumes/www/magictree/ZTesting/osx/safari/moe/display/search_modify_FRA.log

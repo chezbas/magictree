@@ -1,0 +1,39 @@
+[info] Sikuli vision engine loaded.
+[info] Mac OS X utilities loaded.
+[info] VDictProxy loaded.
+[log] App.focus Safari(0) #0
+[log] openApp: "Safari"
+[log] CLICK on (1254,56)
+[log] ?+TYPE "q"
+[log] TYPE "
+"
+[log] App.focus Firefox(0) #0
+[log] openApp: "Firefox"
+[log] CLICK on (247,86)
+[log] TYPE "
+"
+[log] CLICK on (586,497)
+[log] CLICK on (590,547)
+[log] CLICK on (850,622)
+[log] CLICK on (83,347)
+[log] App.focus Firefox(0) #0
+[log] openApp: "Firefox"
+[log] CLICK on (393,174)
+[log] CLICK on (325,264)
+[log] CLICK on (1366,521)
+[log] RIGHT CLICK on (259,640)
+[log] CLICK on (370,871)
+[log] CLICK on (165,805)
+[log] DOUBLE CLICK on (193,820)
+[log] ?+TYPE "c"
+[log] App.focus Safari(0) #0
+[log] openApp: "Safari"
+[log] CLICK on (419,125)
+[log] CLICK on (444,123)
+[log] CLICK on (397,126)
+[log] CLICK on (377,124)
+[log] CLICK on (269,126)
+[log] ?+TYPE "v"
+[log] TYPE "
+"
+[info] locale: fr

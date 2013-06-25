@@ -1,0 +1,138 @@
+
+<html>
+   <head>
+      <style type="text/css">
+         .sikuli-code {
+            font-size: 20px;
+            font-family: "Osaka-mono", Monospace;
+            line-height: 1.5em;
+            display:table-cell;
+            white-space: pre-wrap;       /* css-3 */
+            white-space: -moz-pre-wrap !important;  /* Mozilla, since 1999 */
+            white-space: -pre-wrap;      /* Opera 4-6 */
+            white-space: -o-pre-wrap;    /* Opera 7 */
+            word-wrap: break-word;       /* Internet Explorer 5.5+ */
+            width: 99%;   /* remove horizontal scroll-bar when viewing in IE7 */
+         }
+         .sikuli-code img {
+            vertical-align: middle;
+            margin: 2px;
+            border: 1px solid #ccc;
+            padding: 2px;
+            -moz-border-radius: 5px;
+            -webkit-border-radius: 5px;
+            -moz-box-shadow: 1px 1px 1px gray;
+            -webkit-box-shadow: 1px 1px 2px gray;
+         }
+         .kw {
+            color: blue;
+         }
+         .skw {
+            color: rgb(63, 127, 127);
+         }
+
+         .str {
+            color: rgb(128, 0, 0);
+         }
+
+         .dig {
+            color: rgb(128, 64, 0);
+         }
+
+         .cmt {
+            color: rgb(200, 0, 200);
+         }
+
+         h2 {
+            display: inline;
+            font-weight: normal;
+         }  
+         
+         .info {
+            border-bottom: 1px solid #ddd;
+            padding-bottom: 5px;
+            margin-bottom: 20px;
+            display: none;
+         }
+
+         a {
+            color: #9D2900;
+         }
+
+         body {
+            font-family: "Trebuchet MS", Arial, Sans-Serif;
+         }
+
+      </style>
+   </head>
+<body>
+<div class="info">
+<h2>launchpad.sikuli</h2> <a href="launchpad.zip">(Download this script)</a>
+</div>
+<pre class="sikuli-code">
+path=getBundlePath()
+setBundlePath(path)
+
+Settings.ObserveScanRate = <span class="dig">0.5</span> <span class="cmt"># Every 2 seconds</span>
+
+<span class="cmt"># Start video recording
+</span>switchApp(<span class="str">'iShowU HD'</span>)
+<span class="skw">wait</span>(Pattern(<img src="vancEnreqist.png" />).targetOffset(<span class="dig">13</span>,<span class="dig">1</span>),<span class="dig">20</span>)
+<span class="skw">click</span>(Pattern(<img src="vancEnreqist.png" />).targetOffset(<span class="dig">13</span>,<span class="dig">1</span>))
+
+flagRun = <span class="str">"R"</span>
+<span class="cmt">#popup("Start")
+</span>
+<span class="kw">def</span> handler(e):
+    <span class="skw">click</span>(<img src="1352353947300.png" />)
+
+<span class="kw">def</span> endOfScript(e):
+    <span class="kw">global</span> flagRun
+    <span class="cmt">#RegScreen.stopObserver()
+</span>    <span class="cmt">#secondScreen.stopObserver()
+</span>    flagRun = <span class="str">"S"</span>
+
+<span class="kw">def</span> bounceFinder(e):
+    switchApp(<span class="str">'Finder'</span>)
+
+regBounce = Region(<span class="dig">1271</span>,<span class="dig">863</span>,<span class="dig">169</span>,<span class="dig">37</span>)
+regBounce.ObserveScanRate = <span class="dig">5</span> <span class="cmt"># 5 Hz</span>
+regBounce.onAppear(<img src="F1.png" />, bounceFinder)
+regBounce.observe(FOREVER, background = True)
+
+
+RegScreen = Region(<span class="dig">181</span>,<span class="dig">117</span>,<span class="dig">1115</span>,<span class="dig">729</span>)
+
+
+RegScreen.onAppear(<img src="LQErreurdexc.png" />, handler)
+RegScreen.observe(FOREVER, background = True)
+
+secondScreen = Region(<span class="dig">0</span>,<span class="dig">254</span>,<span class="dig">687</span>,<span class="dig">588</span>)
+
+secondScreen.onAppear(<img src="thisistheend.png" />, endOfScript)
+secondScreen.observe(FOREVER, background = True)
+
+
+switchApp(<span class="str">'Terminal'</span>)
+<span class="skw">wait</span>(<img src="Terminal.png" />,<span class="dig">5</span>)
+<span class="skw">type</span>(<span class="str">"n"</span>,KeyModifier.CMD)
+
+paste(<span class="str">'/Volumes/www/magictree/ZTesting/osx/safari/moe/display/test_plan2'</span>)
+<span class="skw">type</span>(Key.ENTER)
+
+
+<span class="kw">while</span> (flagRun == <span class="str">"R"</span>):
+    <span class="skw">wait</span>(<span class="dig">1</span>)
+
+<span class="cmt"># End video recording
+</span><span class="cmt">#switchApp('iShowU HD')
+</span><span class="skw">click</span>(<img src="1352409860790.png" />)
+<span class="skw">click</span>(<img src="ArrterIacapt.png" />)
+<span class="skw">click</span>(Pattern(<img src="1352409860790.png" />).similar(<span class="dig">0.92</span>))
+<span class="skw">click</span>(<img src="ArrterIacapt.png" />)
+
+<span class="cmt">#type("2",KEY_SHIFT | KEY_CMD)
+</span><span class="cmt">#popup("Fin")</span>
+</pre>
+</body>
+</html>

@@ -1,0 +1,1 @@
+/System/Library/Frameworks/JavaVM.framework/Versions/CurrentJDK/Commands/java -d32 -Dpython.path=Lib/ -jar /Applications/Sikuli-IDE.app/Contents/Resources/Java/sikuli-ide.jar -r /Volumes/www/magictree/ZTesting/seven/ie/moe/display/main.sikuli --args "http://tree.dtravel/demo/?MTLNG=ENG" "http://pma.dtravel/" > /Volumes/www/magictree/ZTesting/seven/ie/moe/display/main.log

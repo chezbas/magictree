@@ -1,0 +1,12 @@
+#! /bin/bash
+
+# English forced in URL
+/System/Library/Frameworks/JavaVM.framework/Versions/CurrentJDK/Commands/java -d32 -Dpython.path=Lib/ -jar /Applications/Sikuli-IDE.app/Contents/Resources/Java/sikuli-ide.jar -r /Volumes/www/magictree/ZTesting/osx/safari/moe/display/search_display.sikuli --args "http://tree.dtravel/" "http://pma.dtravel/" "ENG" "1"> /Volumes/www/magictree/ZTesting/osx/safari/moe/display/search_display_DEFAULT.log
+
+# French forced in URL
+#/System/Library/Frameworks/JavaVM.framework/Versions/CurrentJDK/Commands/java -d32 -Dpython.path=Lib/ -jar /Applications/Sikuli-IDE.app/Contents/Resources/Java/sikuli-ide.jar -r /Volumes/www/magictree/ZTesting/osx/safari/moe/display/search_display.sikuli --args "http://tree.dtravel/" "http://pma.dtravel/" "FRA" "3"> /Volumes/www/magictree/ZTesting/osx/safari/moe/display/search_display_DEFAULT.log
+
+# Default system language
+#/System/Library/Frameworks/JavaVM.framework/Versions/CurrentJDK/Commands/java -d32 -Dpython.path=Lib/ -jar /Applications/Sikuli-IDE.app/Contents/Resources/Java/sikuli-ide.jar -r /Volumes/www/magictree/ZTesting/osx/safari/moe/display/search_display.sikuli --args "http://tree.dtravel/" "http://pma.dtravel/" "" "3"> /Volumes/www/magictree/ZTesting/osx/safari/moe/display/search_display_DEFAULT.log
+
+echo "###this is the end phrase###"

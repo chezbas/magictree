@@ -1,0 +1,50 @@
+[info] Sikuli vision engine loaded.
+[info] Mac OS X utilities loaded.
+[info] VDictProxy loaded.
+[log] CLICK on (80,814)
+[log] CLICK on (437,814)
+[log] CLICK on (152,94)
+[log] CLICK on (931,812)
+[log] CLICK on (945,733)
+[log] TYPE "http://tree.dtravel/demo/?MTLNG=ENG"
+[log] TYPE "
+"
+[log] CLICK on (381,813)
+[log] CLICK on (931,812)
+[log] CLICK on (945,733)
+[log] CLICK on (799,98)
+[log] TYPE "http://pma.dtravel/"
+[log] TYPE "
+"
+[log] CLICK on (620,462)
+[log] TYPE "root"
+[log] CLICK on (627,500)
+[log] TYPE "demo"
+[log] CLICK on (760,573)
+[log] CLICK on (111,392)
+[log] CLICK on (408,162)
+[log] CLICK on (330,259)
+[log] TYPE "SELECT MT.title,ROUND( RAND( ) *100000) RANDOM FROM mt_demo_caption MT WHERE 1 = 1 AND language = "ENG" ORDER BY RANDOM"
+[log] CLICK on (1140,508)
+[log] DOUBLE CLICK on (271,563)
+[log] ?+TYPE "a"
+[log] ?+TYPE "c"
+[log] CLICK on (439,813)
+[log] CLICK on (508,142)
+[log] CLICK on (527,141)
+[log] CLICK on (485,142)
+[log] CLICK on (465,138)
+[log] CLICK on (342,139)
+[log] ?+TYPE "v"
+[log] TYPE "
+"
+[log] DOUBLE CLICK on (447,137)
+[log] ?+TYPE "a"
+[log] TYPE ""
+[log] TYPE "
+"
+[log] CLICK on (413,142)
+[log] ?+TYPE "v"
+[log] CLICK on (463,140)
+[log] CLICK on (323,539)
+Script successfully ended
