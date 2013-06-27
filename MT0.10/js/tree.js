@@ -665,8 +665,6 @@ function input_key_manager(evt,internal_id,row_id)
 			var configuration = new Array();	
 			
 			configuration['page'] = mt_root_path+'ajax/update_row.php';
-			//configuration['div_wait'] = 'ajax_load_etape'+id_etape;
-			//configuration['div_wait_nbr_tentative'] = 'ajax_step_qtt_retrieve'+id_etape;
 			configuration['delai_tentative'] = 5000; // 5 seconds max
 			configuration['max_tentative'] = 2;
 			configuration['type_retour'] = false;		// ReponseText
@@ -675,26 +673,12 @@ function input_key_manager(evt,internal_id,row_id)
 	
 	
 			configuration['fonction_a_executer_reponse'] = 'row_update_done';
-			//configuration['fonction_a_executer_cas_non_reponse'] = 'end_load_ajax';
-			
 			configuration['param_fonction_a_executer_reponse'] = "'"+internal_id+"','"+row_id+"'";
 			
 			
 			// Do the call
 			ajax_call(configuration);
 			//==================================================================
-	
-			// Update HTML content
-			//var update_node = htmlEntities(document.getElementById(internal_id+'input').value);
-			/*
-			var all_blank = trim(update_node);
-			
-			if(all_blank == '')
-			{
-				update_node = update_node.replace(/ /g,'&nbsp;');
-			}
-			document.getElementById(string_id).innerHTML = update_node;
-			*/
 		}
 	}
 }
@@ -799,7 +783,6 @@ function rows_mark_message(internal_id,retour)
 	{
 		confirm_mark_row(ok_button_param);
 	}
-	
 }
 /**==================================================================*/
 
@@ -890,8 +873,6 @@ function toogle_nodes(internal_id,id_expansion,id,update_mode)
 		var configuration = new Array();	
 		
 		configuration['page'] = mt_root_path+'ajax/expandlist.php';
-		//configuration['div_wait'] = 'ajax_load_etape'+id_etape;
-		//configuration['div_wait_nbr_tentative'] = 'ajax_step_qtt_retrieve'+id_etape;
 		configuration['delai_tentative'] = 5000; // 5 seconds max
 		configuration['max_tentative'] = 2;
 		configuration['type_retour'] = false;		// ReponseText
@@ -899,11 +880,10 @@ function toogle_nodes(internal_id,id_expansion,id,update_mode)
 		configuration['param'] = 'ssid='+ssid+'&id='+internal_id+'&IDitem='+id+'&action='+action;
 
 		configuration['fonction_a_executer_reponse'] = 'hide_ajax_waiting_effect';
-		//configuration['fonction_a_executer_cas_non_reponse'] = 'end_load_ajax';
-		
+
 		configuration['param_fonction_a_executer_reponse'] = "'"+internal_id+"'";
 		
-		// Do the call
+		// Do ajax call
 		ajax_call(configuration);
 		//==================================================================
 	}
@@ -913,7 +893,7 @@ function toogle_nodes(internal_id,id_expansion,id,update_mode)
 
 /**==================================================================
  * hide_ajax_waiting_effect : remove waiting window effect
- * @internal_id : tecnhical root id identifier
+ * @internal_id : technical root id identifier
  * @update_mode : 0 means display, 1 means modify mode
  ====================================================================*/
 function hide_ajax_waiting_effect(internal_id,retour)
@@ -1028,6 +1008,8 @@ function display_message_tree(div_id,message)
 {
 	document.getElementById(div_id).innerHTML = message;
 }
+/**==================================================================*/
+
 
 /**==================================================================
  * search_on_tree
@@ -1063,8 +1045,6 @@ function search_on_tree(internal_id)
 		var configuration = new Array();	
 		
 		configuration['page'] = mt_root_path+'ajax/display.php';
-		//configuration['div_wait'] = 'ajax_load_etape'+id_etape;
-		//configuration['div_wait_nbr_tentative'] = 'ajax_step_qtt_retrieve'+id_etape;
 		configuration['delai_tentative'] = 30000; // 30 seconds max
 		configuration['max_tentative'] = 2;
 		configuration['type_retour'] = false;		// ReponseText
@@ -1079,10 +1059,8 @@ function search_on_tree(internal_id)
 		
 		configuration['fonction_a_executer_reponse'] = 'HTML_TreeReturn_focused';
 		configuration['param_fonction_a_executer_reponse'] = "'"+internal_id+"'";
-		//configuration['fonction_a_executer_cas_non_reponse'] = 'end_load_ajax';
-		
 
-		// Do the call
+		// Do ajax call
 		ajax_call(configuration);
 		//==================================================================
 	}
@@ -1612,8 +1590,6 @@ function refresh_display(internal_id,row_id, action)
 	var configuration = new Array();	
 	
 	configuration['page'] = mt_root_path+'ajax/display.php';
-	//configuration['div_wait'] = 'ajax_load_etape'+id_etape;
-	//configuration['div_wait_nbr_tentative'] = 'ajax_step_qtt_retrieve'+id_etape;
 	configuration['delai_tentative'] = 30000; // 30 seconds max
 	configuration['max_tentative'] = 2;
 	configuration['type_retour'] = false;		// ReponseText
@@ -1621,11 +1597,8 @@ function refresh_display(internal_id,row_id, action)
 	configuration['param'] = 'ssid='+ssid+'&id='+internal_id+'&action=4&searchinput='+encodeURIComponent(string_to_find)+'&focus='+row_id;
 	configuration['fonction_a_executer_reponse'] = 'HTML_TreeReturn';
 	configuration['param_fonction_a_executer_reponse'] = "'"+internal_id+"','"+row_id+"','"+action+"'";
-	
-	//configuration['fonction_a_executer_cas_non_reponse'] = 'end_load_ajax';
-	
-	
-	// Do the call
+
+	// Do ajax call
 	ajax_call(configuration);
 	//==================================================================
 }

@@ -441,7 +441,8 @@ function lisha_input_result_click(lisha_id,column,line,txt)
 	close_input_result(lisha_id);
 	
 	// Search
-	lisha_define_filter(lisha_id,encodeURIComponent(document.getElementById('th_input_'+column+'__'+lisha_id).value),column,true);
+	alert(6);
+    lisha_define_filter(lisha_id,encodeURIComponent(document.getElementById('th_input_'+column+'__'+lisha_id).value),column,true);
 }
 
 

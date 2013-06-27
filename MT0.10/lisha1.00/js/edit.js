@@ -9,16 +9,19 @@
  ====================================================================*/
 function edit_cell(evt,line,column,lisha_id, column_format, ajax_return)
 {
-	var div_adresse = 'div_td_l'+line+'_c'+column+'_'+lisha_id;
-
 	if(eval('varlisha_'+lisha_id+'.CurrentCellUpdate') == "") // Not already cell updating ??
 	{
+        // Display the wait div
+        lisha_display_wait(lisha_id);
+
+        var div_adresse = 'div_td_l'+line+'_c'+column+'_'+lisha_id;
+
 		if(typeof(ajax_return) == 'undefined')
 		{
 			if(column_format == __CHECKBOX__ )
 			{
 				// Display the wait div
-				lisha_display_wait(lisha_id);
+				//lisha_display_wait(lisha_id);
 			}
 			
 			var array_primary_key= JSON.stringify(eval('lisha.'+lisha_id+'.lines.L'+line+'.key'));
@@ -90,6 +93,9 @@ function edit_cell(evt,line,column,lisha_id, column_format, ajax_return)
 			{
 				// checkbox case
 
+                // Display the wait div
+                lisha_display_wait(lisha_id);
+
 				// Record vertical lift position
 				eval('varlisha_'+lisha_id+'.scrollTop = '+document.getElementById('liste_'+lisha_id).scrollTop);
 
@@ -98,6 +104,9 @@ function edit_cell(evt,line,column,lisha_id, column_format, ajax_return)
 
 				// Display the wait div
 				lisha_display_wait(lisha_id);
+				
+				// Call extra user event if any
+				lisha_execute_event(__ON_UPDATE__,__AFTER__,lisha_id);
 			}
 			
 			// Force focus
@@ -154,38 +163,49 @@ function input_key_manager(evt,lisha_id,line,column)
 		var input_updating = document.getElementById(div_root_updating+'_input').value;
 
 		// Check Compel
-		if(eval('varlisha_'+lisha_id+'.CurrentCellCompel') == __REQUIRED__ && input_updating == "")
+		/*if(eval('varlisha_'+lisha_id+'.CurrentCellCompel') == __LISTED__)
 		{
-			
-			var message = lis_lib[57].replace(/\$name/g,eval('varlisha_'+lisha_id+'.CurrentCellName')); // Replace $name;
+			// Recover if current value is included in defined LOV
+			var message = lis_lib[126].replace(/\$name/g,eval('varlisha_'+lisha_id+'.CurrentCellName')); // Replace $name;
+			message = message.replace(/\$value/g,input_updating);
 			document.getElementById(div_root_updating+'_input_message').innerHTML = message;
 			document.getElementById(div_root_updating+'_input_message').style.display = 'block';
 		}
 		else
-		{
-			// Compel passed... go on
-			
-			// Hide error message div
-			document.getElementById(div_root_updating+'_input_message').style.display = 'none';
-
-			
-			var array_primary_key= JSON.stringify(eval('lisha.'+lisha_id+'.lines.L'+line+'.key'));
-			//==================================================================
-			// Setup Ajax configuration
-			//==================================================================
-			var conf = new Array();	
+		{*/
+			if(eval('varlisha_'+lisha_id+'.CurrentCellCompel') == __REQUIRED__ && input_updating == "")
+			{
+				
+				var message = lis_lib[57].replace(/\$name/g,eval('varlisha_'+lisha_id+'.CurrentCellName')); // Replace $name;
+				document.getElementById(div_root_updating+'_input_message').innerHTML = message;
+				document.getElementById(div_root_updating+'_input_message').style.display = 'block';
+			}
+			else
+			{
+				// Compel passed... go on
+				
+				// Hide error message div
+				document.getElementById(div_root_updating+'_input_message').style.display = 'none';
 	
-			conf['page'] = eval('lisha.'+lisha_id+'.dir_obj')+'/ajax/ajax_page.php';
-			conf['delai_tentative'] = 15000;
-			conf['max_tentative'] = 4;
-			conf['type_retour'] = false;		// ReponseText
-			conf['param'] = 'lisha_id='+lisha_id+'&ssid='+eval('lisha.'+lisha_id+'.ssid')+'&action=23&arraykey='+array_primary_key+'&column='+column+'&val='+encodeURIComponent(input_updating);
-			conf['fonction_a_executer_reponse'] = 'ok_edit_cell';
-			conf['param_fonction_a_executer_reponse'] = "'"+evt+"',"+line+",'"+lisha_id+"'";
-			
-			ajax_call(conf);
-			//==================================================================
-		}
+				
+				var array_primary_key= JSON.stringify(eval('lisha.'+lisha_id+'.lines.L'+line+'.key'));
+				//==================================================================
+				// Setup Ajax configuration
+				//==================================================================
+				var conf = new Array();	
+		
+				conf['page'] = eval('lisha.'+lisha_id+'.dir_obj')+'/ajax/ajax_page.php';
+				conf['delai_tentative'] = 15000;
+				conf['max_tentative'] = 4;
+				conf['type_retour'] = false;		// ReponseText
+				conf['param'] = 'lisha_id='+lisha_id+'&ssid='+eval('lisha.'+lisha_id+'.ssid')+'&action=23&arraykey='+array_primary_key+'&column='+column+'&val='+encodeURIComponent(input_updating);
+				conf['fonction_a_executer_reponse'] = 'ok_edit_cell';
+				conf['param_fonction_a_executer_reponse'] = "'"+evt+"',"+line+",'"+lisha_id+"'";
+				
+				ajax_call(conf);
+				//==================================================================
+			}
+		//}	
 	}
 }
 /**==================================================================*/
@@ -229,7 +249,7 @@ function edit_lines(evt,line,lisha_id,ajax_return)
 		{
 			//var jsoncolorindex = eval('lisha.'+lisha_id+'.lines.L'+line+'.colorkey');
 			lisha_StopEventHandler(evt);
-			if(line != null && eval('lisha.'+lisha_id+'.return_mode') != __SIMPLE__ && !document.getElementById('chk_l'+line+'_c0_'+lisha_id).checked)
+            if(line != null && eval('lisha.'+lisha_id+'.return_mode') != __SIMPLE__ && !document.getElementById('chk_l'+line+'_c0_'+lisha_id).checked)
 			{
 				// Edit button was clicked on the line
 				lisha_checkbox(line,evt,null,lisha_id);	
@@ -552,13 +572,16 @@ function add_line(lisha_id,ajax_return)
 
 /**==================================================================
  * Add line action
- * @param		: lisha_id Id of the lisha
- * @ajax_return	: use with ajax return
+ * evt			: event of web browser
+ * lisha_id		: lisha_id Id of the lisha
+ * up_mode         : update or add
+ * ajax_return	: use with ajax return
 ====================================================================*/
-function save_lines(lisha_id,ajax_return)
+function save_lines(evt,lisha_id,up_mode,ajax_return)
 {
 	if(typeof(ajax_return) == 'undefined')
 	{
+		
 		// Display the wait div
 		lisha_display_wait(lisha_id);
 		
@@ -578,6 +601,7 @@ function save_lines(lisha_id,ajax_return)
 					eval('val.'+iterable_element+' = new Object();');
 					eval('val.'+iterable_element+'.value = \''+protect_json(document.getElementById('th_input_'+i+'__'+lisha_id).value)+'\';');
 					eval('val.'+iterable_element+'.id = '+i+';');
+					eval('val.'+iterable_element+'.idorigin = '+eval('lisha.'+lisha_id+'.columns.c'+i+'.idorigin')+';'); // Original id position of column
 				}
 			}
 		}
@@ -594,7 +618,7 @@ function save_lines(lisha_id,ajax_return)
 		conf['type_retour'] = false;		// ReponseText
 		conf['param'] = 'lisha_id='+lisha_id+'&ssid='+eval('lisha.'+lisha_id+'.ssid')+'&action=14&val_json='+encodeURIComponent(JSON.stringify(val));
 		conf['fonction_a_executer_reponse'] = 'save_lines';
-		conf['param_fonction_a_executer_reponse'] = "'"+lisha_id+"'";
+		conf['param_fonction_a_executer_reponse'] = "'"+evt+"','"+lisha_id+"','"+up_mode+"'";
 
 		ajax_call(conf);
 		//==================================================================
@@ -603,29 +627,73 @@ function save_lines(lisha_id,ajax_return)
 	{
 		try 
 		{
+			// Hide the wait div
+			lisha_display_wait(lisha_id);
+			
 			// Get the ajax return in json format
 			var json = get_json(ajax_return);
-			
-			// Update the json
-			eval(decodeURIComponent(json.lisha.json));
 
-			// Set the content of the lisha
-			lisha_set_content(lisha_id,decodeURIComponent(json.lisha.content));
 			
-			lisha_set_innerHTML('lisha_toolbar_'+lisha_id,decodeURIComponent(json.lisha.toolbar));
-			
-			document.getElementById('wait_input_'+lisha_id).style.display = 'none';
-			
-			lisha_execute_event(__ON_UPDATE__,__AFTER__,lisha_id);
+			if(json.lisha.error == 'false')
+			{
+				// An error has occured
+				eval('var test = '+decodeURIComponent(json.lisha.error_col));
+				
+				for(var iterable_element in test) 
+				{
+					if(eval('test.'+iterable_element+'.status') == __FORBIDDEN__)
+					{
+						// forbidden
+						document.getElementById('th_input_'+eval('test.'+iterable_element+'.id')+'__'+lisha_id).value = '';
+						document.getElementById('th_input_'+eval('test.'+iterable_element+'.id')+'__'+lisha_id).disabled = 'true';
+					}
+					else
+					{
+						// Required
+						document.getElementById('th_input_'+eval('test.'+iterable_element+'.id')+'__'+lisha_id).style.backgroundColor = '#FFD4D4';
+					}
+				}
+				
+				prompt_btn = new Array([lis_lib[31]],["lisha_cover_with_filter('"+lisha_id+"');"]);
+				
+				document.getElementById('lis_msgbox_conteneur_'+lisha_id).style.display = '';
+				lisha_generer_msgbox(lisha_id,lis_lib[56],decodeURIComponent(json.lisha.error_str),'erreur','msg',prompt_btn);
+
+				lisha_cover_with_filter(lisha_id);
+			}
+			else
+			{
+				// No error
+				
+				// Update the json
+				eval(decodeURIComponent(json.lisha.json));
+	
+				// Set the content of the lisha
+				lisha_set_content(lisha_id,decodeURIComponent(json.lisha.content));
+
+				// Set the content of the toolbar
+				lisha_set_innerHTML('lisha_toolbar_'+lisha_id,decodeURIComponent(json.lisha.toolbar));
+				
+				document.getElementById('wait_input_'+lisha_id).style.display = 'none';
+				
+                switch(up_mode)
+                {
+                    case 'update':
+                        // Call extra user event on update if any
+                        lisha_execute_event(__ON_UPDATE__,__AFTER__,lisha_id);
+                    break;
+                    case 'add':
+                        lisha_execute_event(__ON_ADD__,__AFTER__,lisha_id);
+                    break;
+                    default:
+                        alert('unknown mode !!');
+                }
+			}
 		} 
-		catch(e)
+		catch(e) 
 		{
-			alert(ajax_return);
 			lisha_display_error(lisha_id,e);
 		}
-		
-		// Hide the wait div
-		lisha_display_wait(lisha_id);
 	}
 }
 /**==================================================================*/

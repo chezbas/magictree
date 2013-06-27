@@ -14,7 +14,6 @@
 		private $c_ident;							// DB Identification
 		private $c_columns;							// Columns (array())
 		private $c_columns_init;					// Original columns values
-		private $c_readonly;						// Lisha mode -> true : readonly, false read/write
 		private $c_theme;							// Lisha css theme
 		private $c_height;							// Lisha height
 		private $c_h_unity;							// Lisha unity height (px,%)
@@ -22,9 +21,7 @@
 		private $c_w_unity;							// Lisha unity width (px,%)
 		private $c_nb_line;							// Number of line per page
 		private $c_default_nb_line;					// Number of line per page
-		private $c_column_order;					// Order columns
 		private $c_max_line_per_page;				// max line per page
-		private $c_title;							// Lisha title
 		private $c_color_mask;						// Color mask (array())
 		private $c_group_of_color_column_name;		// Group of color column name
 		private $c_obj_graphic;						// Graphic instance of Lisha
@@ -42,36 +39,32 @@
 		private $c_id_parent;
 		private $c_id_parent_column;	
 		private $c_update_table;
-		private $c_db_keys;							// Fields list of Primary key
+		private $c_db_keys;							// list of Primary key ( Array )
+        private $c_db_fast_field;					// list of field that keep original name ( Array )
 		private $c_selected_lines;
 		private $c_prepared_query;
-		private $c_cells_edit;						// true means quick cell edit disable
 		private $c_edit_mode;
 		private $c_param_adv_filter;
-		private $c_type_internal;					// TODO still usefull ?
 		private	$c_cols_sep_display;
 		private $c_rows_sep_display;
-		private $c_page_selection_display_header;
-		private $c_page_selection_display_footer;
 		private $c_lisha_action;
 		private $c_default_input_focus;				// name of column will get the focus
-		private $c_default_input_focus_id;			// id of column will get the focus
-		private $c_title_display;
 		private $c_position_mode;					// Type of position for LMOD, relative or absolute
 		private $c_time_timer_refresh;				// Timer for refresh auto
 		private $c_lmod_specified_width;
-		private $order_priority;
+		private $order_priority;                    // Order priority index for main query
+        private $order_priority_lov;                // Order priority index for current column lov
 		private $order_priority_lov_column_id;		// Last column id identifier for order priority
 		
 		public $export_status;						// Export status null: no export in progress, 1 in progress, 2 done
 		public $export_total;						// Total of rows to export
 		
 		private $matchcode;				// Matchcode between internal external call and function name
-		/*===================================================================*/	
+		/**===================================================================*/
 		
 		/**==================================================================
 		 * Constructor of lisha class
-		 * @param decimal $p_id
+		 * @param string $p_id
 		 * @param string $p_ssid
 		 * @param string $p_bdd_server
 		 * @param string $p_bdd_user
@@ -161,7 +154,8 @@
 			'__active_title'													=> array('c_title_display','A'),
 			'__id_theme'														=> array('c_theme','A'),
 			'__active_readonly_mode'											=> array('c_readonly','A'),
-			'__main_query'														=> array('c_query','A')
+			'__main_query'														=> array('c_query','A'),
+            '__active_quick_search'												=> array('c_quick_search','A')
 			);
 			//==================================================================
 			
@@ -212,26 +206,30 @@
 			
 			$this->define_attribute('__internal_HTML_position',__RELATIVE__);			// HTML div position
 			
-			$this->define_attribute('__active_read_only_cells_edit', __RW__);						// Enable cells edition
+			$this->define_attribute('__active_read_only_cells_edit', __RW__);			// Enable cells edition
 
 			$this->define_attribute('__return_column_id', 1);
 			$this->order_priority = 1;
+            $this->order_priority_lov = 1;
 			$this->order_priority_lov_column_id = null;
+			$this->c_default_input_focus = null;										// No default focus column
 			
 			$this->c_time_timer_refresh = null;
 			$this->c_lmod_specified_width = null;
 			$this->c_edit_mode = __DISPLAY_MODE__;
+
+            $this->c_db_fast_field = Array();
 
 			$this->c_obj_graphic->c_help_button = true;
 			$this->c_obj_graphic->c_tech_help_button = false;
 			$this->c_obj_graphic->c_tickets_link = false ;			
 			//==================================================================
 		}
-		/*===================================================================*/
+		/**===================================================================*/
 
 
 		/**==================================================================
-		 * Magic function to restore database connexion on unserialize object
+		 * Magic function to restore database connexion on serialize object
 		 * DO NOT REMOVE
 		 ====================================================================*/
 		public function __wakeup()
@@ -239,7 +237,7 @@
 			// Connect to database
 			$this->db_connect();	
 		}
-		/*===================================================================*/
+		/**===================================================================*/
 		
 
 		/**==================================================================
@@ -251,7 +249,7 @@
 			echo "var ssid = '".$p_ssid."'";
 			echo '</script>';
 		}
-		/*===================================================================*/
+		/**===================================================================*/
 		
 		
 		/**==================================================================
@@ -265,7 +263,7 @@
 			$this->c_default_nb_line = $p_nb_line;
 			$this->change_nb_line($p_nb_line,$p_selected_lines);
 		}
-		/*===================================================================*/
+		/**===================================================================*/
 
 		
 		/**==================================================================
@@ -287,7 +285,7 @@
 			$this->define_attribute('__current_page',1);
 			$this->define_limit_min(0);
 		}
-		/*===================================================================*/
+		/**===================================================================*/
 		
 
 		/**==================================================================
@@ -305,7 +303,7 @@
 			$this->c_h_unity = $p_h_unity;
 			$this->c_obj_graphic->define_size($p_width,$p_w_unity,$p_height,$p_h_unity);
 		}
-		/*===================================================================*/
+		/**===================================================================*/
 
 		
 		/**==================================================================
@@ -320,16 +318,6 @@
 			switch($p_mode)
 			{
 				case 'date':
-					if(isset($this->c_columns[$p_column]['date_format']))
-					{
-						$final_date_format = $this->c_columns[$p_column]['date_format'];
-					}
-					else
-					{
-						// No custom date format for this column then use default country localization format
-						$final_date_format = $_SESSION[$this->c_ssid]['lisha']['date_format'];
-					}
-
 					// Setup customer filter
 					$tmp_final = $this->convert_database_date_to_localized_format($p_column,$p_value,$p_db_engine);
 					
@@ -343,12 +331,12 @@
 					die();
 			}			
 		}
-		/*===================================================================*/
+		/**===================================================================*/
 		
 		
 		/**==================================================================
 		 * define_key
-		 * Define keys design primary access in your table to update
+		 * Define keys design primary access in your main table
 		 ====================================================================*/
 		public function define_key($p_array_keys)
 		{
@@ -372,8 +360,19 @@
 			}
 			$this->c_db_keys = $p_array_keys;
 		}
-		/*===================================================================*/
-		
+		/**===================================================================*/
+
+
+        /**==================================================================
+         * Manage field that keep same name in your main table
+         * Please do not add primary field here
+        ====================================================================*/
+        public function define_fast_field($p_array_keys)
+        {
+            $this->c_db_fast_field = $p_array_keys;
+        }
+        /**===================================================================*/
+
 		
 		/**==================================================================
 		 * define_input_focus
@@ -390,7 +389,7 @@
 		
 		
 		/**==================================================================
-		 * General or column define attributs fonction
+		 * General or column define attributes fonction
 		 * Check first matchcode list of class_lisha
 		 * if not exists then try matchcode of class_graphic
 		 * @p_attribute		: External attribute name
@@ -412,7 +411,7 @@
 					$this->c_obj_graphic->define_attribute($p_attribute,$p_value, true, $p_column_name, $this->get_id_column($p_column_name),$p_to_init);
 
 					$var = $this->matchcode[$p_attribute][0];
-					if(!isset($p_column_name))
+					if($p_column_name == null)
 					{
 						$this->$var = $p_value;
 					}
@@ -439,7 +438,7 @@
 		/**==================================================================
 		 * General or column reader attributs fonction
 		 * Check first matchcode list of class_lisha
-		 * if not exists then try matchcode of class_graphic
+		 * if not exists then try matchcode in class class_graphic
 		 * @p_attribute : External attribute name
 		 * @p_column_name : Column name if it's a column feature ( null means main feature )
 		 ====================================================================*/
@@ -470,6 +469,7 @@
 					error_log(__FILE__.' name '.$p_attribute.' not readable');die();
 				}
 			}
+            return true;
 		}
 		/**==================================================================*/
 				
@@ -508,7 +508,7 @@
 		
 		/**
 		 * Define the state of the line per page text on the navbar
-		 * @param boolean $p_state true : display / false : hidden
+		 * @p_state true : display / false : hidden
 		 */
 		public function define_navbar_txt_line_per_page_activate($p_state)
 		{
@@ -518,22 +518,22 @@
 				
 		/**==================================================================
 		 * define_column
-		 * @param itn $p_column_id Id of the columnn in the SQL
-		 * @param string $p_name Column title
-		 * @param string $p_data_type Data type
-		 * @param string $p_nowrap true : nowrap enabled, false nowrap disabled
-		 * @param string $p_alignment text alignment into a column
-		 * @p_display		:	display or hide
+		 * @p_column_id		: Columnn alias name `table`.`field` AS `shortcut`
+		 * @p_name			: Column title name
+		 * @p_data_type		: Column data type
+		 * @p_nowrap 		: true nowrap enabled, false nowrap disabled
+		 * @p_alignment		: text alignment
+		 * @p_display		: display or hide column
 		 ====================================================================*/
 		public function define_column($p_column_id,$p_name,$p_data_type = __BBCODE__,$p_nowrap = __NOWRAP__,$p_alignment = __CENTER__,$p_search_mode = __PERCENT__,$p_display = __DISPLAY__)
 		{
 			$column_id = count($this->c_columns)+1;
-			$this->c_columns[$column_id] = array(	"original_order" => $column_id,
-													"sql_as" => $p_column_id,
+			$this->c_columns[$column_id] = array(	"sql_as" => $p_column_id,
 													"order_by" => false,
 													"order_priority" => false,
-													"quick_help" => false
-												);
+													"quick_help" => false,
+													"original_order" => $column_id
+			);
 			$this->define_attribute('__column_search_mode',$p_search_mode,$p_column_id);
 			$this->define_attribute('__column_no_wrap',$p_nowrap,$p_column_id);
 			$this->define_attribute('__column_text_alignment',$p_alignment,$p_column_id);
@@ -549,8 +549,8 @@
 		
 		/**
 		 * Define a function for update query, exemple : MD5(__COL_VALUE__) -> MD5(value)
-		 * @param string $p_column column name
-		 * @param constant $p_function MD5(__COL_VALUE__),SHA1(__COL_VALUE__),ENCODE("__COL_VALUE__","454fdf")...
+		 * @p_column column name
+		 * @p_function MD5(__COL_VALUE__),SHA1(__COL_VALUE__),ENCODE("__COL_VALUE__","454fdf")...
 		 */
 		public function define_col_rw_function($p_column,$p_function)
 		{
@@ -560,7 +560,7 @@
 		/**
 		 * Define a function for select query, exemple : MD5(__COL_VALUE__) -> MD5(value)
 		 * @param string $p_column column name
-		 * @param constant $p_function MD5(__COL_VALUE__),SHA1(__COL_VALUE__),ENCODE("__COL_VALUE__","454fdf")...
+		 * @p_function MD5(__COL_VALUE__),SHA1(__COL_VALUE__),ENCODE("__COL_VALUE__","454fdf")...
 		 */
 		public function define_col_select_function($p_column,$p_function)
 		{
@@ -613,21 +613,21 @@
 			}
 			//==================================================================
 		}
-		/*===================================================================*/
+		/**===================================================================*/
 		
 		
 		/**==================================================================
 		 * define_column_lov ( initial lov column definition )
-		 * @p_column_id				:	Column identifier
-		 * @p_name					:	Window title
-		 * @p_data_type		 		:	column data type
-		 * @p_nowrap				:	__NOWRAP__ or __WRAP__
-		 * @p_alignment				:	Content alignment __CENTER__, __LEFT__ or __RIGHT__
-		 * @p_search_mode			:	Search mode __PERCENT__ or __EXACT__
-		 * @p_display				:	Show or hide column __DISPLAY__ or __HIDE__
-		 * @p_focus					:	id column to setup focus
+		 * @p_column_id				: Column identifier
+		 * @p_name					: Window title
+		 * @p_data_type		 		: column data type
+		 * @p_nowrap				: Kind of values : __NOWRAP__ or __WRAP__
+		 * @p_alignment				: Content alignment __CENTER__, __LEFT__ or __RIGHT__
+		 * @p_search_mode			: Search mode __PERCENT__ or __EXACT__
+		 * @p_display				: Show or hide column __DISPLAY__ or __HIDE__
+		 * @p_focus					: identifier column to setup focus
 		 ====================================================================*/
-		public function define_column_lov($p_column_id,$p_name,$p_data_type = __TEXT__,$p_nowrap = __WRAP__,$p_alignment = __CENTER__,$p_search_mode = __PERCENT__,$p_display = __DISPLAY__, $p_focus = null)
+		public function define_column_lov($p_column_id, $p_name,$p_data_type = __TEXT__,$p_nowrap = __WRAP__,$p_alignment = __CENTER__,$p_search_mode = __PERCENT__,$p_display = __DISPLAY__, $p_focus = null)
 		{
 			$column_id = count($this->c_columns);
 			$this->c_columns[$column_id]['lov']['columns'][$p_column_id]['sql_as'] = $p_column_id;
@@ -733,10 +733,19 @@
 		}
 		
 		
+		/**==================================================================
+		 * define_lisha_action
+		 * Define javascript extra event user call
+		 * @p_event		: Kind of internal event ( eg : __ON_LMOD_INSERT__...)
+		 * @p_moment	: Id of column ( __BEFORE__, __AFTER__ )
+		 * @p_lisha		: Id of target lisha in your page
+		 * @p_action	: Javascript function to call
+		 ====================================================================*/
 		public function define_lisha_action($p_event,$p_moment,$p_lisha,$p_action)
 		{
 			$this->c_lisha_action[$p_event][] = Array('lisha' => $p_lisha,'MOMENT' => $p_moment,'ACTION' => $p_action);
 		}	
+		/**==================================================================*/
 		
 		
 		/**==================================================================
@@ -766,6 +775,7 @@
 			{
 				$id_column = $this->get_id_column($column_name);
 			}
+
 			$this->c_columns[$id_column]['order_priority'] = $this->order_priority;
 			$this->c_columns[$id_column]['order_by'] = $order;
 
@@ -782,9 +792,8 @@
 		 * define_column_lov_order
 		 * @column_name			:	Column name
 		 * @order			 	:	__ASC__ or __DESC__
-		 * @id_column			:	column id
 		 ====================================================================*/
-		public function define_column_lov_order($column_name,$order,$id_column = null)
+		public function define_column_lov_order($column_name,$order)
 		{
 			// Get current id column
 			$id_column = count($this->c_columns);
@@ -792,18 +801,18 @@
 			// column switch ?
 			if($this->order_priority_lov_column_id != $id_column)
 			{
-				$this->order_priority = 1;
+				$this->order_priority_lov = 1;
 				$this->order_priority_lov_column_id = $id_column;
 			}
 			
-			$this->c_columns[$id_column]['lov']['columns'][$column_name]['order']['order_priority'] = $this->order_priority;
+			$this->c_columns[$id_column]['lov']['columns'][$column_name]['order']['order_priority'] = $this->order_priority_lov;
 			$this->c_columns[$id_column]['lov']['columns'][$column_name]['order']['order_by'] = $order;
 
 			// Keep in memory
-			$this->c_columns_init[$id_column]['lov']['columns'][$column_name]['order']['order_priority'] = $this->order_priority;
+			$this->c_columns_init[$id_column]['lov']['columns'][$column_name]['order']['order_priority'] = $this->order_priority_lov;
 			$this->c_columns_init[$id_column]['lov']['columns'][$column_name]['order']['order_by'] = $order;
 			
-			$this->order_priority = $this->order_priority + 1;
+			$this->order_priority_lov = $this->order_priority_lov + 1;
 		}
 		/**==================================================================*/		
 
@@ -838,14 +847,14 @@
 								
 		
 		/**==================================================================
-		 * define_filter
+		 * define_filter just typing by user in input box
 		 * @post			:	Array of whole $_POST
 		 ====================================================================*/
 		public function define_filter($post)
 		{
 			// Set the selected lines to edit
 			$this->define_selected_line($post['selected_lines']);
-			
+
 			//==================================================================
 			// Browse the updated filter
 			//==================================================================
@@ -938,12 +947,13 @@
 			$this->define_attribute('__current_page',1);
 			$this->define_limit_min(0);
 			//==================================================================
-						
+
 			//==================================================================
 			// Execute the query and display the elements
 			//==================================================================
-			$this->prepare_query();
-			
+			$this->prepare_query();       // SRX optimization
+
+            //error_log(print_r($this->c_columns,true));
 			$json = $this->generate_lisha_json_param();
 			$json_line = $this->generate_json_line();
 			
@@ -957,7 +967,7 @@
 			echo $xml;
 			//==================================================================
 		}
-		/*===================================================================*/	
+		/**===================================================================*/
 		
 		
 		/**==================================================================
@@ -1029,7 +1039,7 @@
 	 				$this->c_columns_init[$key]['is_lovable'] = true;
 	 			}
 		 	}
-	 		/*===================================================================*/	
+	 		/**===================================================================*/
 		}
 		
 		
@@ -1050,10 +1060,12 @@
 			}			
 			return $html;
 		}
-		
-		/**
-		 * Create the lisha graphic object
-		 */
+
+
+        /**==================================================================
+         * new_graphic_lisha
+         * Create the lisha graphic object
+        ====================================================================*/
 		public function new_graphic_lisha()
 		{
 			// Get the filter option
@@ -1061,8 +1073,11 @@
 			
 			// Prepare the query
 			$this->prepare_query();
+
+            return null;
 		}
-		
+        /**===================================================================*/
+
 		
 		/**==================================================================
 		 * get_and_set_filter
@@ -1096,7 +1111,7 @@
 					//==================================================================
 					// Get filter values from the database
 					//==================================================================
-					foreach($this->c_columns as $key_column => &$val_column)
+					foreach($this->c_columns as &$val_column)
 					{
 						$val_column['display'] = __DISPLAY__;
 						$val_column['order_by'] = false;
@@ -1112,11 +1127,11 @@
 					//==================================================================
 					
 					//==================================================================
-					// Restore colum position : CPS
+					// Restore column position : CPS
 					//==================================================================
 					if(isset($result_array['CPS']))
 					{
-						foreach($result_array['CPS'] as $key => $row)
+						foreach($result_array['CPS'] as $row)
 						{
 							$column_temp[$row['val1']] = $this->c_columns[$this->get_id_column($row['id_column'])];
 						}
@@ -1128,7 +1143,7 @@
 					//==================================================================
 					if(isset($result_array['ORD']))
 					{
-						foreach($result_array['ORD'] as $key => $row)
+						foreach($result_array['ORD'] as $row)
 						{
 							$column_temp[$row['val3']]['order_by'] = $row['val2'];
 							$column_temp[$row['val3']]['order_priority'] = $row['val1'];
@@ -1141,7 +1156,7 @@
 					//==================================================================
 					if(isset($result_array['DMD']))
 					{
-						foreach($result_array['DMD'] as $key => $row)
+						foreach($result_array['DMD'] as $row)
 						{
 							($row['val2'] == '') ? $val_dmd = false : $val_dmd = true;
 							$val_dmd = false;
@@ -1155,7 +1170,7 @@
 					//==================================================================
 					if(isset($result_array['QSC']))
 					{
-						foreach($result_array['QSC'] as $key => $row)
+						foreach($result_array['QSC'] as $row)
 						{
 							if($column_temp[$row['val1']]['data_type'] == 'date')
 							{
@@ -1178,7 +1193,7 @@
 					//==================================================================
 					if(isset($result_array['SMD']))
 					{
-						foreach($result_array['SMD'] as $key => $row)
+						foreach($result_array['SMD'] as $row)
 						{
 							$column_temp[$row['val1']]['search_mode'] = $row['val2'];
 						}
@@ -1190,7 +1205,7 @@
 					//==================================================================
 					if(isset($result_array['ALI']))
 					{
-						foreach($result_array['ALI'] as $key => $row)
+						foreach($result_array['ALI'] as $row)
 						{
 							$column_temp[$row['val1']]['alignment'] = $row['val2'];
 						}
@@ -1242,16 +1257,46 @@
 								break;
 						}
 					}
-					/*===================================================================*/	
+					/**===================================================================*/
 					ksort($column_temp);
 
 					$this->c_columns = $column_temp;
 				}	
 			}
 		}
-		/*===================================================================*/	
-		
-		
+		/**===================================================================*/
+
+
+        /**==================================================================
+         * in_array_lisha
+         * Search value into Array(Array(table0,field0),Array(table1,field1)...)
+         * @valeur      :   Name of filed to find
+         * @tab         :   Multi dimensional array
+         * return table or alias name or false if field name not found
+        ====================================================================*/
+        private function in_array_lisha($valeur,&$tab)
+        {
+            foreach ($tab as $val)
+            {
+                if($val[1]==$valeur)
+                {
+                    if($val[0] == null)
+                    {
+                        $retour = 'null';
+                    }
+                    else
+                    {
+                        $retour = $val[0];
+                    }
+
+                    return $retour;
+                }
+            }
+            return false;
+        }
+        /**===================================================================*/
+
+
 		/**==================================================================
 		 * prepare_query
 		 * build and run query with all WHERE condition
@@ -1260,37 +1305,81 @@
 		 ====================================================================*/
 		private function prepare_query($add_where = '',$p_active_limit = true, $p_engine = __MYSQL__)
 		{
-
 			//==================================================================
 			// Get Column filter
 			//==================================================================
 			$sql_filter = '';
-			foreach($this->c_columns as $column_key => $column_value)
+            $sql_filter_fast = '';
+
+			foreach($this->c_columns AS $column_value)
 			{
 				if(isset($column_value['filter']))
 				{
-					foreach ($column_value['filter'] as $filter_key => $filter_value)
+					foreach ($column_value['filter'] AS $filter_value)
 					{
-						$sql_filter .= ' AND '.$this->get_quote_col($column_value['sql_as']).' '.$this->get_like($column_value['search_mode'].$this->protect_sql($this->replace_chevrons(str_replace('_','\\_',str_replace('%','\\%',str_replace("\\","\\\\",$filter_value['filter']))),true),$this->link).$column_value['search_mode']);
+                        // Defined as fast field ??
+                        if(isset($this->c_db_fast_field))
+                        {
+                            if($tab_alias_name = $this->in_array_lisha($column_value['sql_as'],$this->c_db_fast_field))
+                            {
+                                // Add fast field closer in core in query
+                                if($tab_alias_name == 'null')
+                                {
+                                    $alias_table_name = $this->c_update_table;
+                                }
+                                else
+                                {
+                                    $alias_table_name = $tab_alias_name;
+                                }
+                                $sql_filter_fast .= ' AND '.$this->get_quote_col($alias_table_name).'.'.$this->get_quote_col($column_value['sql_as']).' '.$this->get_like($column_value['search_mode'].$this->protect_sql($this->replace_chevrons(str_replace('_','\\_',str_replace('%','\\%',str_replace("\\","\\\\",$filter_value['filter']))),true),$this->link).$column_value['search_mode']);
+                            }
+                            else
+                            {
+                                $sql_filter .= ' AND '.$this->get_quote_col($column_value['sql_as']).' '.$this->get_like($column_value['search_mode'].$this->protect_sql($this->replace_chevrons(str_replace('_','\\_',str_replace('%','\\%',str_replace("\\","\\\\",$filter_value['filter']))),true),$this->link).$column_value['search_mode']);
+                            }
+                        }
+
+                        // filled is a primary key table ??
+                        if(isset($this->c_db_keys))
+                        {
+                            if(in_array($column_value['sql_as'],$this->c_db_keys))
+                            {
+                                // Add key field closer in core in query
+                                $sql_filter_fast .= ' AND '.$this->get_quote_col($this->c_update_table).'.'.$this->get_quote_col($column_value['sql_as']).' '.$this->get_like($column_value['search_mode'].$this->protect_sql($this->replace_chevrons(str_replace('_','\\_',str_replace('%','\\%',str_replace("\\","\\\\",$filter_value['filter']))),true),$this->link).$column_value['search_mode']);
+                            }
+                            else
+                            {
+                                $sql_filter .= ' AND '.$this->get_quote_col($column_value['sql_as']).' '.$this->get_like($column_value['search_mode'].$this->protect_sql($this->replace_chevrons(str_replace('_','\\_',str_replace('%','\\%',str_replace("\\","\\\\",$filter_value['filter']))),true),$this->link).$column_value['search_mode']);
+                            }
+                        }
 					}
 				}
-			}																		
+			}
 			//==================================================================
-			
+            
 			//==================================================================
 			// Count number of line of the query
 			//==================================================================
-			$this->exec_sql('SELECT * FROM ('.$this->c_query.') deriv WHERE 1 = 1 '.$add_where.' '.$sql_filter,__LINE__,__FILE__,__FUNCTION__,__CLASS__,$this->link);
-			
-			$this->c_recordset_line = $this->rds_num_rows($this->resultat);
-			$this->c_obj_graphic->set_recordser_line($this->c_recordset_line);
-			//==================================================================
+
+            if($this->c_page_selection_display_header || $this->c_page_selection_display_footer)
+            {
+                $this->exec_sql('SELECT null FROM ('.$this->c_query.$sql_filter_fast.') deriv WHERE 1 = 1 '.$sql_filter,__LINE__,__FILE__,__FUNCTION__,__CLASS__,$this->link);
+
+                $this->c_recordset_line = $this->rds_num_rows($this->resultat);
+                $this->resultat->free();
+            }
+            else
+            {
+                // No navigation bar, don't compute total of rows ( Enhance performance )
+                $this->c_recordset_line = 1;
+            }
+            $this->c_obj_graphic->set_recordser_line($this->c_recordset_line);
+            //==================================================================
 																								
 			//==================================================================
 			// Build column order array
 			//==================================================================
 			$order = '';
-			$i = 0;
 			$array_order = array();
 			foreach($this->c_columns as $key => $value)
 			{
@@ -1307,17 +1396,20 @@
 			// Build ORDER BY string for database engine
 			//==================================================================
 			$i = 0;
-			foreach($array_order as $key => $value)
+			foreach($array_order AS $value)
 			{
 				$str_before = '';
 				$str_after = '';
-				
-				if($this->c_columns[$value['column']]['data_type'] == 'date')
+
+                //==================================================================
+                // Right order by with localized date format
+                //==================================================================
+                if($this->c_columns[$value['column']]['data_type'] == 'date')
 				{
 					$str_before = "deriv.";
 				}
-				
-				
+                //==================================================================
+
 				if($i == 0)
 				{
 					$order .= ' ORDER BY '.$str_before.$this->get_quote_col($this->c_columns[$value['column']]['sql_as']).$str_after.' '.$value['order_by'];
@@ -1331,15 +1423,15 @@
 			//==================================================================
 			
 			//==================================================================
-			// Build query primary key string to be concate
+			// Build query primary key string by simple concatenation
 			//==================================================================
-			$key_concat = "''";
+			$key_concatenation = "''";
 			
 			if(is_array($this->c_db_keys))
 			{
 				foreach($this->c_db_keys as $key_value)
 				{
-					$key_concat .= ',`'.$key_value.'`';
+                    $key_concatenation .= ',`'.$key_value.'`';
 				}
 			}
 			//==================================================================
@@ -1348,7 +1440,7 @@
 			// Custom column format ( Date, currency... )
 			//==================================================================
 			$temp_columns = '';
-			foreach($this->c_columns as $key => $value)
+			foreach($this->c_columns as $value)
 			{
 				$str_before =''; $str_after = '';
 
@@ -1372,10 +1464,9 @@
 						$str_after = ",'".$final_date_format."')";
 					break;
 					}	
-				}	
-				
-				
-				$temp_columns .= $str_before.'`'.$value['sql_as'].'` '.$str_after.' AS `'.$value['sql_as'].'`,';
+				}
+
+				$temp_columns .= $str_before.$this->get_quote_col($value['sql_as']).$str_after.' AS `'.$value['sql_as'].'`,';
 			}
 			$temp_columns = substr($temp_columns,0,-1);
 			//==================================================================
@@ -1396,16 +1487,40 @@
 			
 			//==================================================================
 			// Execute query
+            // SRX optimization ( Do more with less Yaoooo !!! )
 			//==================================================================
-			$prepared_query = 'SELECT '.$temp_columns.',CONCAT('.$key_concat.') AS `lisha_internal_key_concat` FROM ('.$this->c_query.') deriv WHERE 1 = 1 '.$add_where.' '.$sql_filter.' '.$order.' '.$my_limit;
+			$prepared_query = 'SELECT '.$temp_columns.',CONCAT('.$key_concatenation.') AS `lisha_internal_key_concat` FROM ('.$this->c_query.$sql_filter_fast.') deriv WHERE 1 = 1 '.$add_where.' '.$sql_filter.' '.$order.' '.$my_limit;
+            //$prepared_query = 'SELECT '.$temp_columns.',CONCAT('.$key_concatenation.') AS `lisha_internal_key_concat` FROM ('.$this->c_query.$sql_filter_fast.') deriv WHERE 1 = 1 '.$add_where.' '.$sql_filter.' '.$order;
+
 			$this->c_prepared_query = $prepared_query;
 			
 			$this->exec_sql($prepared_query,__LINE__,__FILE__,__FUNCTION__,__CLASS__,$this->link);
-			//==================================================================
+
+            // $this->c_recordset_line = $this->rds_num_rows($this->resultat);
+
+            //$this->c_obj_graphic->set_recordser_line($this->c_recordset_line);
+
+            $this->c_page_qtt_line = $this->rds_num_rows($this->resultat);
+
+            // List all fields features
+            //error_log(print_r($this->resultat->fetch_fields(),true));
+
+            //
+            /*
+            if($this->c_limit_min == round($this->c_recordset_line/$this->c_default_nb_line))
+            {
+                $this->c_page_qtt_line = $this->c_recordset_line%$this->c_default_nb_line;
+            }
+            else
+            {
+                // Use modulo operator
+                $this->c_page_qtt_line = $this->c_default_nb_line;
+            }
+            */
+            //==================================================================
 			
-			$this->c_page_qtt_line = $this->rds_num_rows($this->resultat);
 		}
-		/*===================================================================*/	
+		/**===================================================================*/
 		
 		
 		/**==================================================================
@@ -1443,13 +1558,15 @@
 					}
 					else
 					{
-						return $row['result'];	
+						return $row['result'];
 					}
 				break;
 			}
+            error_log($p_engine." doesn't exist !!");
+            return true;
 		}
-		/*===================================================================*/	
-		
+		/**===================================================================*/
+
 		
 		/**==================================================================
 		 * convert_database_date_to_localized_format
@@ -1490,9 +1607,11 @@
 						return $row['result'];
 					}	
 				break;
-			}	
+			}
+            error_log($p_engine." doesn't exist !!");
+            return false;
 		}
-		/*===================================================================*/	
+		/**===================================================================*/
 
 		
 		/**==================================================================
@@ -1505,7 +1624,7 @@
 			$this->check_column_lovable();
 			return $this->c_obj_graphic->draw_lisha($this->resultat,false,null,false);
 		}
-		/*===================================================================*/	
+		/**===================================================================*/
 		
 		
 		/**==================================================================
@@ -1527,7 +1646,7 @@
 			
 			echo $xml;
 		}
-		/*===================================================================*/	
+		/**===================================================================*/
 		
 		
 		/**==================================================================
@@ -1538,7 +1657,7 @@
 		{
 			return $this->c_obj_graphic->generate_lmod_form();
 		}
-		/*===================================================================*/	
+		/**===================================================================*/
 
 		
 		/**==================================================================
@@ -1550,7 +1669,7 @@
 		{
 			return $this->c_obj_graphic->generate_style($p_bal_style);
 		}
-		/*===================================================================*/	
+		/**===================================================================*/
 		
 		
 		/**==================================================================
@@ -1670,7 +1789,7 @@
 			
 			return $json;
 		}
-		/*===================================================================*/	
+		/**===================================================================*/
 		
 		
 		/**==================================================================
@@ -1689,7 +1808,7 @@
 			}
 			return $qtt;
 		}
-		/*===================================================================*/	
+		/**===================================================================*/
 		
 		
 		/**==================================================================
@@ -1702,8 +1821,8 @@
 			$json_base = 'lisha.'.$this->c_id;
 			
 			$json = $json_base.'.columns = new Object();';
-			$last_col = '';
-			foreach($this->c_columns as $key => $value) 
+
+			foreach($this->c_columns as $key => $value)
 		 	{
 		 		if($value['display'] == __DISPLAY__)
 		 		{
@@ -1762,8 +1881,6 @@
 			 		{
 			 			$json .= $json_base.'.columns.c'.$key.'.is_lovable = true;';
 			 		}
-			 		
-			 		$last_col = $key;
 		 		}
 		 	}
 		 	
@@ -1771,7 +1888,7 @@
 		 	
 		 	return $json;
 		}
-		/*===================================================================*/	
+		/**===================================================================*/
 
 		
 		/**==================================================================
@@ -1782,7 +1899,7 @@
 		{
 			return count($this->c_columns); // SRX optimization
 		}
-		/*===================================================================*/	
+		/**===================================================================*/
 		
 		
 		/**==================================================================
@@ -1796,12 +1913,11 @@
 			
 			$i = 1;
 			
-			// Place the cursor on the first row of the recordset
-			if($this->rds_num_rows($this->resultat) > 0)
-			{
-				$this->rds_data_seek($this->resultat,0);
-			}
-			
+            if($this->rds_num_rows($this->resultat) > 0)
+            {
+                $this->rds_data_seek($this->resultat,0);
+            }
+
 			// Reset color variables
 			$current_group_value = null;
 			$i_color = 0;
@@ -1882,7 +1998,7 @@
 			}
 			return $json;
 		}
-		/*===================================================================*/
+		/**===================================================================*/
 		
 		
 		/**
@@ -1942,9 +2058,10 @@
 			else
 			{
 				echo $header;
+                return true;
 			}
 		}
-		/*===================================================================*/
+		/**===================================================================*/
 		
 		public function generate_public_header()
 		{
@@ -1984,6 +2101,7 @@
 			else
 			{
 				echo $js;
+                return false;
 			}
 		}
 		
@@ -2004,7 +2122,8 @@
  			$html .= 'varlisha_'.$this->c_id.'.CurrentCellCompel = "";';
  			$html .= 'varlisha_'.$this->c_id.'.CurrentCellName = "";';
  			$html .= 'varlisha_'.$this->c_id.'.scrollTop = 0;';
- 			
+            //$html .= 'varlisha_'.$this->c_id.'.refresh = false;';
+
  			$html .= 'varlisha_'.$this->c_id.'_child.CurrentCellUpdate = "";';
  			$html .= 'varlisha_'.$this->c_id.'_child.CellUpdateOriginValue = "";';
  			$html .= 'varlisha_'.$this->c_id.'_child.CurrentCellCompel = "";';
@@ -2013,7 +2132,7 @@
  			$html .='</script>';
             echo $html;
 		}
-		/*===================================================================*/	
+		/**===================================================================*/
 		
 		
 		/**==================================================================
@@ -2051,7 +2170,7 @@
             
             echo $html;
 		}
-		/*===================================================================*/	
+		/**===================================================================*/
 		
 		public function include_stylesheet()
 		{
@@ -2124,11 +2243,14 @@
 			{
 				return $this->c_obj_graphic->generate_lmod_header();
 			}
+
+            return null;
 		}
-		
+
+
 		/**==================================================================
 		 * get_id_column
-		 * @name				: column name
+		 * @column_name : column name
 		 * return column id or null if not found
 		 ====================================================================*/
 		private function get_id_column($column_name)
@@ -2148,8 +2270,9 @@
 				// Nothing found
 				return null;	
 			}
+            return null;
 		}
-		/*===================================================================*/	
+		/**===================================================================*/
 		
 		
 		/**==================================================================
@@ -2158,20 +2281,22 @@
 		 ====================================================================*/
 		private function clear_all_order()
 		{
-			foreach($this->c_columns as $key => &$value)
+			foreach($this->c_columns as &$value)
 			{
 				$value["order_by"] = false;
 				$value["order_priority"] = false;
 			}
 			
 			$this->c_obj_graphic->clear_all_order();
+
+            return null;
 		}
-		/*===================================================================*/	
+		/**===================================================================*/
 		
 		
 		/**==================================================================
 		 * lisha_generate_calendar
-		 * @p_column 		: colmun identifier
+		 * @p_column 		: column identifier
 		 * @p_input			: input string of column header
 		 * @p_year 			: numeric year in for digits
 		 * @p_month			: numeric month two digits
@@ -2194,9 +2319,9 @@
 			if(is_null($p_month)) $p_month = date('n');
 			if(is_null($p_day)) $p_day = date('j');
 			
-			return $this->c_obj_graphic->lisha_generate_calendar($p_column,$p_input,$p_year,$p_month,$p_day);
+			return $this->c_obj_graphic->lisha_generate_calendar($p_column,$p_year,$p_month,$p_day);
 		}
-		/*===================================================================*/	
+		/**===================================================================*/
 		
 
 		/**==================================================================
@@ -2210,20 +2335,26 @@
 			$array_key = json_decode($array_key);
 
 			$string_where = '';
-			
+
 			foreach($array_key as $clef => $value)
 			{
-				$string_where .= 'AND `'.$clef.'` = \''.$value.'\'';
+				$string_where .= 'AND `'.$this->c_update_table.'`.`'.$clef.'` = \''.$value.'\'';
 			}
-			
+
+            $column_compel = '';
+            $str_before ='';
+            $str_after = '';
+            $temp_columns = '';
+            $column_display_name = '';
+            $column_name = '';
+
 			// Browse column to find the right one
-			foreach($this->c_columns as $key_col => $val_col)
+			foreach($this->c_columns as $val_col)
 			{
 				if($val_col["original_order"] == $column)
 				{
 					$column_name = $this->c_columns[$val_col["original_order"]]["sql_as"];
 
-					$column_compel = "";
 					if(isset($this->c_columns[$val_col["original_order"]]["rw_flag"]))
 					{
 						$column_compel = $this->c_columns[$val_col["original_order"]]["rw_flag"];
@@ -2233,8 +2364,6 @@
 					
 					
 					// Localization date format
-					$str_before =''; $str_after = ''; $temp_columns = '';
-		
 					if ($this->c_columns[$val_col["original_order"]]['data_type'] == 'date')
 					{
 						if(isset($this->c_columns[$val_col["original_order"]]['date_format']))
@@ -2256,14 +2385,15 @@
 						}	
 					}	
 					
-					$temp_columns .= $str_before.'`'.$column_name.'` '.$str_after.' AS `'.$column_name.'`';
+					$temp_columns .= $str_before.'`'.$this->c_update_table.'`.`'.$column_name.'` '.$str_after.' AS `'.$column_name.'`';
 					
 					// primary key..only one row found... then exit foreach now
 					break;
 				}
 			}
 			
-			$prepared_query = 'SELECT '.$temp_columns.' FROM ('.$this->c_query.') deriv WHERE 1 = 1 '.$string_where;
+            $prepared_query = 'SELECT DISTINCT '.$temp_columns.$this->rebuild_fast_query($this->c_query).$string_where;
+            //$prepared_query = 'SELECT '.$temp_columns.' FROM ('.$this->c_query.') deriv WHERE 1 = 1 '.$string_where;
 			$p_result_header = $this->exec_sql($prepared_query,__LINE__,__FILE__,__FUNCTION__,__CLASS__,$this->link,false);
 
 			$row = $this->rds_fetch_array($p_result_header);
@@ -2272,7 +2402,7 @@
 			
 			// Checkbox
 			//error_log($column_name.$val_col["original_order"]);
-			
+
 			if($this->c_columns[$column]['data_type'] == __CHECKBOX__)
 			{
 				//error_log(print_r($this->c_columns[$column],true));
@@ -2289,13 +2419,13 @@
 				$set_string = '`'.$column_name.'` = \''.$html.'\'';
 				
 				$prepared_query = 'UPDATE '.$this->c_update_table.' SET '.$set_string.' WHERE 1 = 1 '.$string_where;
-				$p_result_header = $this->exec_sql($prepared_query,__LINE__,__FILE__,__FUNCTION__,__CLASS__,$this->link,false);
+				$this->exec_sql($prepared_query,__LINE__,__FILE__,__FUNCTION__,__CLASS__,$this->link,false);
 			}
 
 			$retour = array("HTML" => $html,"COMPEL" => $column_compel, "DISPLAY_NAME" => $column_display_name);
 			echo json_encode($retour);
 		}
-		/*===================================================================*/	
+		/**===================================================================*/
 
 		
 		/**==================================================================
@@ -2303,8 +2433,9 @@
 		 * Update cell content
 		 * @array_key 		: json format of array primary key of cell to update
 		 * @column			: relative column position
+         * @p_value			: New value for cell to update
 		 ====================================================================*/
-		public function edit_cell($array_key, $column, $p_value, $p_engine = __MYSQL__)
+		public function edit_cell($array_key, $column, $p_value)
 		{
 			$array_key = json_decode($array_key);
 
@@ -2315,9 +2446,10 @@
 				$string_where .= 'AND `'.$clef.'` = \''.$value.'\'';
 			}
 			$string_where = substr($string_where,4);
-			
+
+            $column_name = '';
 			// Browse column to find the right one
-			foreach($this->c_columns as $key_col => $val_col)
+			foreach($this->c_columns as $val_col)
 			{
 				if($val_col["original_order"] == $column)
 				{
@@ -2346,13 +2478,11 @@
 			
 			$prepared_query = 'UPDATE '.$this->c_update_table.' SET '.$set_string.' WHERE '.$string_where;
 			
-			$p_result_header = $this->exec_sql($prepared_query,__LINE__,__FILE__,__FUNCTION__,__CLASS__,$this->link,false);
+			$this->exec_sql($prepared_query,__LINE__,__FILE__,__FUNCTION__,__CLASS__,$this->link,false);
 
-			//$row = $this->rds_fetch_array($p_result_header);
-			
 			echo $prepared_query;
 		}
-		/*===================================================================*/	
+		/**===================================================================*/
 		
 		
 		/**==================================================================
@@ -2368,7 +2498,7 @@
 
 			// Set the selected lines to edit
 			$this->define_selected_line($json_lines);
-			
+
 			// Reset the filters
 			$this->reset_filters();
 
@@ -2382,10 +2512,14 @@
 			$sql = 'SELECT ';
 			$i_sql = 0;
 			
-			foreach($this->c_columns as $key_col => $val_col)
+			foreach($this->c_columns as $val_col)
 			{
 				// Special column $this->c_group_of_color_column_name
-				if( $val_col['sql_as'] != $this->c_group_of_color_column_name && !isset($val_col['rw_flag']) || (isset($val_col['rw_flag']) && $val_col['rw_flag'] != __FORBIDDEN__ && $val_col['display']))
+				if(
+					$val_col['sql_as'] != $this->c_group_of_color_column_name
+					&& !isset($val_col['rw_flag']) || (isset($val_col['rw_flag']) 
+					&& $val_col['rw_flag'] != __FORBIDDEN__ 
+					&& $val_col['display']))
 				{
 					if($i_sql > 0)
 					{
@@ -2435,7 +2569,7 @@
 			//==================================================================
 			
 			$only_selected_lines = ' AND ((';
-
+			
 			//==================================================================
 			// Build query WHERE part
 			//==================================================================
@@ -2444,7 +2578,7 @@
 			{
 				if($i > 0)
 				{
-					$only_selected_lines .= ' OR ((';
+					$only_selected_lines .= ' OR (';
 				}
 				$j = 0;  
 				foreach ($value as $key => $value_key)
@@ -2460,26 +2594,28 @@
 					
 					$j = $j + 1;
 				}
-				$only_selected_lines .= '))';
+ 				$only_selected_lines .= ')';
 				$i = $i + 1;
 			}
+            $only_selected_lines .= ')';
+
 			//==================================================================
-			
+
 			//==================================================================
 			// Assembly, run and return xml final query
 			//==================================================================
-			$sql .= ' FROM '.$this->c_update_table.' WHERE 1 = 1 '.$only_selected_lines; 
+			$sql .= ' FROM '.$this->c_update_table.' WHERE 1 = 1 '.$only_selected_lines;
 			$p_result_header = $this->exec_sql($sql,__LINE__,__FILE__,__FUNCTION__,__CLASS__,$this->link,false);
 			
 			$this->prepare_query($only_selected_lines);
-			
+
 			$json = $this->generate_lisha_json_param();
 			
 			// XML return	
 			header("Content-type: text/xml");
 			$xml = "<?xml version='1.0' encoding='UTF8'?>";
 			$xml .= "<lisha>";
-			$xml .= "<content>".$this->protect_xml($this->c_obj_graphic->draw_lisha($this->resultat,$p_result_header,true,$sql))."</content>";
+			$xml .= "<content>".$this->protect_xml($this->c_obj_graphic->draw_lisha($this->resultat,$p_result_header,true,true))."</content>";
 			$xml .= '<toolbar>'.$this->protect_xml($this->c_obj_graphic->generate_toolbar(true)).'</toolbar>';
 			$xml .= "<json>".$this->protect_xml($json)."</json>";
 			$xml .= "</lisha>";
@@ -2487,7 +2623,7 @@
 			echo $xml;
 			//==================================================================
 		}
-		/*===================================================================*/	
+		/**===================================================================*/
 
 		
 		/**==================================================================
@@ -2497,7 +2633,7 @@
 		 * @p_only_count	: if true return only count of lines to export
 		 * @p_engine		: Database engine used
 		 ====================================================================*/
-		public function export_list($json_lines, $p_only_count = false, $p_engine = __MYSQL__)
+		public function export_list($json_lines, $p_only_count = false)
 		{
 			$this->export_status = 1;
 			
@@ -2547,7 +2683,7 @@
 			{
 				$this->prepare_query('',false);
 			}	
-			//error_log($this->c_prepared_query);					
+			//error_log($this->c_prepared_query);
 			//==================================================================
 			// Build first row : column header names
 			//==================================================================
@@ -2561,7 +2697,7 @@
 			{
 				foreach($row as $clef => $valeur)
 				{
-					foreach($this->c_columns as $key_col => $val_col)
+					foreach($this->c_columns as $val_col)
 					{
 						if($val_col['sql_as'] == $clef)
 						{
@@ -2617,13 +2753,6 @@
 			//==================================================================
 			// Create data lines
 			//==================================================================
-			//$_SESSION[$this->c_ssid]['lisha']['myexport'] = 0;
-			
-			//error_log(print_r(session_get_cookie_params(),true));
-			
-			// Out the session
-			$db_result = $this->resultat;
-			
 			while($row = $this->rds_fetch_array($this->resultat))
 			{
 				//session_name($this->c_ssid);
@@ -2635,7 +2764,7 @@
 				$j=0; // Displayed column
 				$export = '';
 				
-				foreach($row as $clef => $valeur)
+				foreach($row as $valeur)
 				{
 					if($this->export_status == -1)
 					{
@@ -2648,7 +2777,10 @@
 					{
 						$export .= '"'.str_replace('"','""',html_entity_decode($valeur,ENT_QUOTES,"UTF-8")).'";';
 						$j = $j + 1;
-						if($j==$max_column) break;
+						if($j==$max_column)
+                        {
+                            break;
+                        }
 					}
 					$i = $i + 1;
 				}
@@ -2658,17 +2790,14 @@
 				// New line, insert break line
 				$export .= chr(13);
 
-				//usleep(10000); // 0.01 secondes
-				
 				echo $export;
 			}
 			//==================================================================
 			
-			//session_name($this->c_ssid);
-			//session_start();
 			$this->export_status = 2; // Export done
-		}
-		/*===================================================================*/	
+		    return null;
+        }
+		/**===================================================================*/
 
 		
 		/**==================================================================
@@ -2696,7 +2825,7 @@
 			
 			echo $xml;
 		}
-		/*===================================================================*/	
+		/**===================================================================*/
 		
 		
 		/**==================================================================
@@ -2748,7 +2877,7 @@
 				$this->exec_sql($sql_delete,__LINE__,__FILE__,__FUNCTION__,__CLASS__,$this->link);
 			}
 			
-			// Unselecte lines
+			// Unselected lines
 			$this->c_selected_lines = false;
 			
 			$this->prepare_query();
@@ -2765,7 +2894,106 @@
 			
 			echo $xml;
 		}
-		/*===================================================================*/	
+		/**===================================================================*/
+		
+
+		/**==================================================================
+		 * update_data_check	: Check consistency of data row
+		 * Use full to add or update data
+		 ====================================================================*/
+		private function update_data_check($tab_val_col)
+		{
+			if(count($tab_val_col) != 0)
+			{
+				// Any column updated ?? ( updating data only )
+				$ctrl_ok = true;
+				$error_str = '<table>';
+				$error_line = array();
+				//error_log(print_r($tab_val_col,true));
+				foreach($this->c_columns as $key_col => $value_col) 
+				{
+					// Check required
+					if(isset($value_col['rw_flag']) && 
+						($value_col['rw_flag'] == __REQUIRED__ || $value_col['rw_flag'] == __LISTED__) && 
+						!isset($value_col['auto_create_column'])
+					  )
+					{
+						//==================================================================
+						// Search idorigin in list return by javascript part
+						//==================================================================
+						foreach($tab_val_col as $valeur)
+						{
+							if($valeur['idorigin'] == $value_col['original_order'])
+							{
+								// __LISTED__ ??
+								if(isset($value_col['lov']['sql']) && $value_col['rw_flag'] == __LISTED__)
+								{
+									// LOV defined, ok continue
+									$ctrl_ok = false;
+									$error_str .='<tr><td align=left>'.str_replace('$value',$valeur['value'],str_replace('$name','<b>'.$value_col['name'].'</b>',$this->lib(126))).'</td></tr>';
+									
+									$error_line['c'.$key_col]['id'] = $key_col;
+									$error_line['c'.$key_col]['status'] = __LISTED__;
+									break;
+								}
+								// __REQUIRED__ ??
+								if($valeur['value'] == '')
+								{
+									$ctrl_ok = false;
+									$error_str .='<tr><td align=left>'.str_replace('$name','<b>'.$value_col['name'].'</b>',$this->lib(57)).'</td></tr>';
+									
+									$error_line['c'.$key_col]['id'] = $key_col;
+									$error_line['c'.$key_col]['status'] = __REQUIRED__;
+									break;
+								}
+								break; // Only one line possible, so exit foreach
+							}
+						}
+						//==================================================================
+					}
+					else
+					{
+						if(!isset($value_col['auto_create_column']))
+						{
+							if($value_col['display'] && isset($tab_val_col['c'.$value_col['original_order']]))
+							{
+								if(isset($value_col['rw_flag']) && $value_col['rw_flag'] == __FORBIDDEN__ && $tab_val_col['c'.$value_col['original_order']]['value'] != '')
+								{
+									$ctrl_ok = false;
+									$error_str .='<tr><td align=left>'.str_replace('$name','<b>'.$value_col['name'].'</b>',$this->lib(58)).'</td></tr>';
+								}
+								if(isset($value_col['rw_flag']))
+								{
+									$error_line['c'.$key_col]['id'] = $key_col;
+									$error_line['c'.$key_col]['status'] = __FORBIDDEN__;
+								}
+							}
+						}
+					}	
+				}
+				
+				$error_str .= '</table>';
+				//==================================================================
+	
+				if($ctrl_ok)
+				{
+					$ctrl_ok = 'true';
+				}
+				else
+				{
+					$ctrl_ok = 'false';
+				}
+			}
+			else
+			{
+				// None value updated
+				$ctrl_ok = 'true';
+				$error_str = '';
+				$error_line = '';
+			}
+			return array($ctrl_ok,$error_str,$error_line);
+		}
+		/**===================================================================*/
 		
 		
 		/**==================================================================
@@ -2780,65 +3008,16 @@
 			//==================================================================
 			// Data control
 			//==================================================================
-			$ctrl_ok = true;
-			$error_str = '<table>';
-			$error_line = array();
+			$check = $this->update_data_check($tab_val_col);
+			//==================================================================
 			
-			foreach($this->c_columns as $key_col => $value_col) 
+			if($check[0] == 'true')
 			{
-				// Check required
-				if(isset($value_col['rw_flag']) && $value_col['rw_flag'] == __REQUIRED__ && !isset($value_col['auto_create_column']))
-				{
-					//==================================================================
-					// search idorigin in list return by javascript part
-					//==================================================================
-					foreach($tab_val_col as $clef => $valeur)
-					{
-						if($valeur['idorigin'] == $value_col['original_order'])
-						{
-							if($valeur['value'] == '')
-							{
-								$ctrl_ok = false;
-								$error_str .='<tr><td align=left>'.str_replace('$name','<b>'.$value_col['name'].'</b>',$this->lib(57)).'</td></tr>';
-								
-								$error_line['c'.$key_col]['id'] = $key_col;
-								$error_line['c'.$key_col]['status'] = __REQUIRED__;
-							}
-							break; // Only one line possible, so exit foreach
-						}
-					}
-					//==================================================================
-				}
-				else
-				{
-					if(!isset($value_col['auto_create_column']))
-					{
-						if($value_col['display'])
-						{
-							if(isset($value_col['rw_flag']) && $value_col['rw_flag'] == __FORBIDDEN__ && $tab_val_col['c'.$value_col['original_order']]['value'] != '')
-							{
-								$ctrl_ok = false;
-								$error_str .='<tr><td align=left>'.str_replace('$name','<b>'.$value_col['name'].'</b>',$this->lib(58)).'</td></tr>';
-							}
-							if(isset($value_col['rw_flag']))
-							{
-								$error_line['c'.$key_col]['id'] = $key_col;
-								$error_line['c'.$key_col]['status'] = __FORBIDDEN__;
-							}
-						}
-					}
-				}	
-			}
+				//==================================================================
+				// No error
+				// Prepare insert query
+				//==================================================================
 			
-			$error_str .= '</table>';
-			//==================================================================
-			
-			//==================================================================
-			// Prepare the insert query
-			//==================================================================
-			($ctrl_ok) ? $json_err = 'true' : $json_err = 'false';
-			if($ctrl_ok)
-			{
 				// Control line OK, add the line
 				$sql_insert = 'INSERT INTO '.$this->c_update_table.'(';
 				$sql_insert_values = '';
@@ -2892,7 +3071,7 @@
 					}
 				}
 				
-				foreach($this->c_columns as $column_key => $column_value)
+				foreach($this->c_columns as $column_value)
 				{
 					if(isset($column_value['predefined_value']))
 					{
@@ -2916,24 +3095,24 @@
 				$xml .= "<content>".$this->protect_xml($this->c_obj_graphic->draw_lisha($this->resultat,true,true))."</content>";
 				$xml .= '<toolbar>'.$this->protect_xml($this->c_obj_graphic->generate_toolbar(false,$this->resultat)).'</toolbar>';
 				$xml .= "<json>".$this->protect_xml($json)."</json>";
-				$xml .= "<error>".$json_err."</error>";
+				$xml .= "<error>".$check[0]."</error>";
 				$xml .= "</lisha>";
 			}
 			else
 			{
-				// XML return	
+				// Error in XML return	
 				header("Content-type: text/xml");
 				$xml = "<?xml version='1.0' encoding='UTF8'?>";
 				$xml .= "<lisha>";
-				$xml .= "<error>".$json_err."</error>";
-				$xml .= "<error_str>".$this->protect_xml($error_str)."</error_str>";
-				$xml .= "<error_col>".$this->protect_xml(json_encode($error_line))."</error_col>";				
+				$xml .= "<error>".$check[0]."</error>";
+				$xml .= "<error_str>".$this->protect_xml($check[1])."</error_str>";
+				$xml .= "<error_col>".$this->protect_xml(json_encode($check[2]))."</error_col>";				
 				$xml .= "</lisha>";
 			}
 			
 			echo $xml;
 		}
-		/*===================================================================*/	
+		/**===================================================================*/
 
 		
 		/**==================================================================
@@ -2942,125 +3121,146 @@
 		 ====================================================================*/
 		public function save_lines($val_col)
 		{
-			// Define the lisha mode
+			// First, cancel update mode for further action
 			$this->c_edit_mode = __DISPLAY_MODE__;
 						
-			// Transform JSON to an array
+			// Transform input area line to php array
 			$tab_val_col = json_decode($val_col,true);
-			
+
 			//==================================================================
-			// Update the selected lines with the new values
+			// Data control
 			//==================================================================
-			
+			$check = $this->update_data_check($tab_val_col);
+			//==================================================================
+
+			if($check[0] == 'true' && $this->c_selected_lines != '')
+			{
 				//==================================================================
-				// Build update set of values
-				//==================================================================
-				$sql_update = 'UPDATE '.$this->c_update_table.' ';
-
-				$i = 0;
-
-				// Browse all column to update
-				foreach($tab_val_col as $key => $value)
-				{
-					//$value['value'] = htmlentities($value['value'],ENT_QUOTES,'UTF-8');
-					$value['value'] = $this->replace_chevrons($value['value'],true);
-					// Add a SET if necessary or a ,
-					($i > 0) ? $sql_update .= ',' : $sql_update .= 'SET ';
-
-					if($this->c_columns[$value['id']]['data_type'] == 'date')
-					{
-						$value['value'] = $this->convert_localized_date_to_database_format($value['id'], $value['value']);
-					}
-					
-					if(isset($this->c_columns[$value['id']]['rw_function']))
-					{
-						// Special update function defined on the column
-						$sql_update .= $this->get_quote_col($this->c_columns[$value['id']]['sql_as']).' = '.str_replace('__COL_VALUE__',$this->protect_sql($value['value'],$this->link),$this->c_columns[$value['id']]['rw_function']);
-					}
-					else
-					{
-						// No special function
-						$sql_update .= $this->get_quote_col($this->c_columns[$value['id']]['sql_as']).' = '.$this->get_quote_string($this->protect_sql($value['value'],$this->link));
-					}
-
-					unset($this->c_columns[$value['id']]['filter']);
-
-					// Counter of the column
-					$i = $i + 1;
-				}
+				// No error
+				// Update all selected lines with new values
 				//==================================================================
 				
-				if($i > 0)
-				{
-					// A column has changed, execute the query update
-					
 					//==================================================================
-					// Build WHERE query part
+					// Build update set of values
 					//==================================================================
-					$sql_update .= chr(10).' WHERE';
-					
+					$sql_update = 'UPDATE '.$this->c_update_table.' ';
+	
 					$i = 0;
-					// Browse all selected lines for includes in where clause
-					foreach($this->c_selected_lines['keys'] as $value)
+	
+					// Browse all column to update
+					foreach($tab_val_col as $value)
 					{
-						$j = 0;
-						
-						// Add OR if necessary
-						($i > 0) ? $sql_update .= ') OR (' : $sql_update .= ' (';
-						
-						// Browse all keys of the selected lines
-						foreach($value as $selected_key => $selected_value)
+						//$value['value'] = htmlentities($value['value'],ENT_QUOTES,'UTF-8');
+						$value['value'] = $this->replace_chevrons($value['value'],true);
+						// Add a SET if necessary or a ,
+						($i > 0) ? $sql_update .= ',' : $sql_update .= 'SET ';
+	
+						if($this->c_columns[$value['id']]['data_type'] == 'date')
 						{
-							// Add AND if necessary
-							($j > 0) ? $sql_update .= ' AND ' : $sql_update .= '';
-							
-							// WHERE clause
-							$sql_update .= $this->get_quote_col($this->c_columns[$this->get_id_column($selected_key)]['sql_as']).' = '.$this->get_quote_string($selected_value); 
-							
-							// Counter of the selected line keys
-							$j = $j + 1;
+							$value['value'] = $this->convert_localized_date_to_database_format($value['id'], $value['value']);
 						}
 						
-						// Counter of the selected line
+						if(isset($this->c_columns[$value['id']]['rw_function']))
+						{
+							// Special update function defined on the column
+							$sql_update .= $this->get_quote_col($this->c_columns[$value['id']]['sql_as']).' = '.str_replace('__COL_VALUE__',$this->protect_sql($value['value'],$this->link),$this->c_columns[$value['id']]['rw_function']);
+						}
+						else
+						{
+							// No special function
+							$sql_update .= $this->get_quote_col($this->c_columns[$value['id']]['sql_as']).' = '.$this->get_quote_string($this->protect_sql($value['value'],$this->link));
+						}
+	
+						unset($this->c_columns[$value['id']]['filter']);
+	
+						// Counter of the column
 						$i = $i + 1;
 					}
+					//==================================================================
 					
 					if($i > 0)
 					{
-						$sql_update .= ')';		// Close the where clause
+						// A column has changed, execute the query update
+						
+						//==================================================================
+						// Build WHERE query part
+						//==================================================================
+						$sql_update .= chr(10).' WHERE';
+						
+						$i = 0;
+						// Browse all selected lines for includes in where clause
+						foreach($this->c_selected_lines['keys'] as $value)
+						{
+							$j = 0;
+							
+							// Add OR if necessary
+							($i > 0) ? $sql_update .= ') OR (' : $sql_update .= ' (';
+							
+							// Browse all keys of the selected lines
+							foreach($value as $selected_key => $selected_value)
+							{
+								// Add AND if necessary
+								($j > 0) ? $sql_update .= ' AND ' : $sql_update .= '';
+								
+								// WHERE clause
+								$sql_update .= $this->get_quote_col($this->c_columns[$this->get_id_column($selected_key)]['sql_as']).' = '.$this->get_quote_string($selected_value); 
+								
+								// Counter of the selected line keys
+								$j = $j + 1;
+							}
+							
+							// Counter of the selected line
+							$i = $i + 1;
+						}
+						
+						if($i > 0)
+						{
+							$sql_update .= ')';		// Close the where clause
+						}
+						//==================================================================
+	
+						// Execute the update query
+						$this->exec_sql($sql_update,__LINE__,__FILE__,__FUNCTION__,__CLASS__,$this->link);
 					}
-					//==================================================================
-
-					// Execute the update query
-					$this->exec_sql($sql_update,__LINE__,__FILE__,__FUNCTION__,__CLASS__,$this->link);
-				}
-			//==================================================================
-			
-			// Unselect the lines	
-			$this->c_selected_lines = null;
+				//==================================================================
 				
-			$this->prepare_query();
-			$json = $this->generate_lisha_json_param();
-			
-			// XML return	
-			header("Content-type: text/xml");
-			$xml = "<?xml version='1.0' encoding='UTF8'?>";
-			$xml .= "<lisha>";
-			$xml .= "<content>".$this->protect_xml($this->c_obj_graphic->draw_lisha($this->resultat,true,true))."</content>";
-			$xml .= '<toolbar>'.$this->protect_xml($this->c_obj_graphic->generate_toolbar()).'</toolbar>';
-			$xml .= "<json>".$this->protect_xml($json)."</json>";
-			$xml .= "</lisha>";
+				// Unselect the lines	
+				$this->c_selected_lines = null;
+					
+				$this->prepare_query();
+				$json = $this->generate_lisha_json_param();
+				
+				// XML return	
+				header("Content-type: text/xml");
+				$xml = "<?xml version='1.0' encoding='UTF8'?>";
+				$xml .= "<lisha>";
+				$xml .= "<content>".$this->protect_xml($this->c_obj_graphic->draw_lisha($this->resultat,true,true))."</content>";
+				$xml .= '<toolbar>'.$this->protect_xml($this->c_obj_graphic->generate_toolbar()).'</toolbar>';
+				$xml .= "<json>".$this->protect_xml($json)."</json>";
+				$xml .= "</lisha>";
+			}
+			else
+			{
+				// Error in XML return	
+				header("Content-type: text/xml");
+				$xml = "<?xml version='1.0' encoding='UTF8'?>";
+				$xml .= "<lisha>";
+				$xml .= "<error>".$check[0]."</error>";
+				$xml .= "<error_str>".$this->protect_xml($check[1])."</error_str>";
+				$xml .= "<error_col>".$this->protect_xml(json_encode($check[2]))."</error_col>";				
+				$xml .= "</lisha>";
+			}	
 			
 			echo $xml;
 		}
-		/*===================================================================*/	
+		/**===================================================================*/
 		
 		
 		/**
 		 * Change the alignment of a column
 		 * @param integer $p_column ID of the column
-		 * @param constant $p_type_alignment Alignment (__CENTER__,__LEFT__ or __RIGHT__)
-		 * @param json $p_selected_lines Selected lines
+		 * @param string $p_type_alignment Alignment (__CENTER__,__LEFT__ or __RIGHT__)
+		 * @param string $p_selected_lines Selected lines
 		 */
 		public function change_alignment($p_column,$p_type_alignment,$p_selected_lines)
 		{
@@ -3083,7 +3283,7 @@
 			$xml .= "</lisha>";
 			
 			echo $xml;
-			/*===================================================================*/	
+			/**===================================================================*/
 		}
 		
 		
@@ -3203,7 +3403,7 @@
 			echo $xml;
 			//==================================================================
 		}
-		/*===================================================================*/	
+		/**===================================================================*/
 		
 		
 		/**==================================================================
@@ -3238,7 +3438,7 @@
 			
 			echo $xml;
 		}
-		/*===================================================================*/	
+		/**===================================================================*/
 		
 		
 		/**==================================================================
@@ -3267,7 +3467,7 @@
 					}
 					//==================================================================
 										
-					// It is a selected lineor not ?
+					// It is a selected line or not ?
 					if($value_tab_selected_var['selected'])
 					{
 						// Line selected
@@ -3284,7 +3484,7 @@
 				//==================================================================
 			}
 		}
-		/*===================================================================*/	
+		/**===================================================================*/
 		
 		
 		/**==================================================================
@@ -3307,8 +3507,7 @@
 			
 			// Copy content of the column source and destination
 			$temp_src = $this->c_columns[$c_src];
-			$temp_dst = $this->c_columns[$c_dst];
-			
+
 			// Move each column between the source and destination
 			if($c_src > $c_dst)
 			{
@@ -3350,7 +3549,7 @@
 			
 			echo $xml;
 		}
-		/*===================================================================*/	
+		/**===================================================================*/
 		
 		
 		/**==================================================================
@@ -3406,7 +3605,7 @@
 			
 			echo $xml;
 		}
-		/*===================================================================*/	
+		/**===================================================================*/
 
 		
 		/**==================================================================
@@ -3442,7 +3641,7 @@
 			
 			echo $xml;
 		}
-		/*===================================================================*/	
+		/**===================================================================*/
 		
 		
 		/**==================================================================
@@ -3455,18 +3654,55 @@
 		{
 			// Define the selected lines
 			$this->define_selected_line($p_selected_lines);
-			
+
 			//==================================================================
 			// Recover columns filter
 			//==================================================================
 			$sql_filter = '';
-			foreach($this->c_columns as $column_key => $column_value)
+            $sql_filter_fast = '';
+
+            // Scan custom filter defined on each column
+            foreach($this->c_columns as $column_key => $column_value)
 			{
 				if(isset($column_value['filter']) && $column_key != $column)
 				{
-					foreach ($column_value['filter'] as $filter_key => $filter_value)
+					foreach ($column_value['filter'] as $filter_value)
 					{
-						$sql_filter .= ' AND '.$this->get_quote_col($column_value['sql_as']).' '.$this->get_like($column_value['search_mode'].$this->protect_sql($filter_value['filter'],$this->link).$column_value['search_mode']);
+                        // Defined as fast field ??
+                        if(isset($this->c_db_fast_field))
+                        {
+                            if($tab_alias_name = $this->in_array_lisha($column_value['filter'],$this->c_db_fast_field))
+                            {
+                                // Add fast field closer in core in query
+                                if($tab_alias_name == 'null')
+                                {
+                                    $alias_table_name = $this->c_update_table;
+                                }
+                                else
+                                {
+                                    $alias_table_name = $tab_alias_name;
+                                }
+                                $sql_filter_fast .= ' AND '.$this->get_quote_col($alias_table_name).$this->get_quote_col($column_value['sql_as']).' '.$this->get_like($column_value['search_mode'].$this->protect_sql($filter_value['filter'],$this->link).$column_value['search_mode']);
+                            }
+                            else
+                            {
+                                $sql_filter .= ' AND '.$this->get_quote_col($column_value['sql_as']).' '.$this->get_like($column_value['search_mode'].$this->protect_sql($filter_value['filter'],$this->link).$column_value['search_mode']);
+                            }
+                        }
+
+                        // filled is a primary key table ??
+                        if(isset($this->c_db_keys))
+                        {
+                            if(in_array($column_value['filter'],$this->c_db_keys))
+                            {
+                                // Add key field closer in core in query
+                                $sql_filter_fast .= ' AND '.$this->get_quote_col($this->c_update_table).$this->get_quote_col($column_value['sql_as']).' '.$this->get_like($column_value['search_mode'].$this->protect_sql($filter_value['filter'],$this->link).$column_value['search_mode']);
+                            }
+                            else
+                            {
+                                $sql_filter .= ' AND '.$this->get_quote_col($column_value['sql_as']).' '.$this->get_like($column_value['search_mode'].$this->protect_sql($filter_value['filter'],$this->link).$column_value['search_mode']);
+                            }
+                        }
 					}
 				}
 			}
@@ -3476,7 +3712,7 @@
 			// Browse the updated filter
 			//==================================================================
 			$post['filter'] = $txt;
-			
+
 			if($post['filter'] == '')
 			{
 				// No filter defined, clear the filter clause
@@ -3485,34 +3721,41 @@
 			}
 			else
 			{
+                // Something input in input box, so continue
+
+                //==================================================================
+                // Convert date in native form if any
+                //==================================================================
 				if($this->c_columns[$column]['data_type'] == 'date')
-				{					
+				{
 					$tmp_result = $this->convert_localized_date_to_database_format($column,$post['filter'],__MYSQL__); // Database engine hard coded TODO
-					
+
 					$this->c_columns[$column]['filter']['input'] = array('filter' => $tmp_result,
 																		'filter_display' => rawurldecode($post['filter'])
 																		);
 				}
 				else
-				{				
+				{
 					$this->c_columns[$column]['filter']['input'] = array('filter' => rawurldecode($post['filter']),
 																		'filter_display' => rawurldecode($post['filter'])
 																		);
 				}
-				
-				if(isset($this->c_columns[$column]['lov']))
+                //==================================================================
+
+                if(isset($this->c_columns[$column]['lov']))
 				{
+                    // PERCENT
 					$sql = 'SELECT * FROM ('.$this->c_columns[$column]['lov']['sql'].') AS `ret` WHERE '.$this->c_columns[$column]['lov']['col_return'].' LIKE "%'.$this->protect_sql(rawurldecode($post['filter']),$this->link).'%"';
-					
+
 					$this->exec_sql($sql,__LINE__,__FILE__,__FUNCTION__,__CLASS__,$this->link);
 
-					if($this->c_columns[$column]['quick_help'])
-					{
-						// Quick help : true
+					//if($this->c_columns[$column]['quick_help'])
+					//{
+						// Quick help : Strict
 						if($this->rds_num_rows($this->resultat) == 1)
 						{
 							$this->c_columns[$column]['taglov_possible'] = true;
-							
+
 							while($row = $this->rds_fetch_array($this->resultat))
 							{
 								$this->c_columns[$column]['filter']['input']['taglov'] = $row;
@@ -3522,19 +3765,22 @@
 						{
 							unset($this->c_columns[$column]['taglov_possible']);
 						}
-					}
-					else
+					//}
+					/*else
 					{
-						// Quick help : false
-						
+					    // Wont work in tinyint field on strict value no numeric
+						// Quick help : STRICT
+
 						// Search if the exact value exist
 						$sql = 'SELECT * FROM ('.$this->c_columns[$column]['lov']['sql'].') AS `ret` WHERE '.$this->c_columns[$column]['lov']['col_return'].' = "'.$this->protect_sql(rawurldecode($post['filter']),$this->link).'"';
-						$this->exec_sql($sql,__LINE__,__FILE__,__FUNCTION__,__CLASS__,$this->link);
-						
-						if($this->rds_result($this->resultat,0, 'ret') > 0)
+                        error_log("hhhhhhhhh".$sql);
+                        $this->exec_sql($sql,__LINE__,__FILE__,__FUNCTION__,__CLASS__,$this->link);
+                        // SRX fix it please !!
+                        // Error due to field in tinyint(3)
+                        //if($this->rds_result($this->resultat,0, 'ret') > 0)
+						if($this->rds_num_rows($this->resultat) > 0)
 						{
 							$this->c_columns[$column]['taglov_possible'] = true;
-							
 							while($row = $this->rds_fetch_array($this->resultat))
 							{
 								$this->c_columns[$column]['filter']['input']['taglov'] = $row;
@@ -3544,13 +3790,13 @@
 						{
 							unset($this->c_columns[$column]['taglov_possible']);
 						}
-					}
+					}*/
 				}
 			}
 			//==================================================================
-			
-			$this->check_column_lovable();
-			
+
+            $this->check_column_lovable();
+
 			if(isset($this->c_columns[$column]['filter']) && count($this->c_columns[$column]['filter']) == 0)
 			{
 				unset($this->c_columns[$column]['filter']);
@@ -3564,17 +3810,16 @@
 				if(!isset($this->c_columns[$column]['lov']))
 				{
 					// Count result
-					$sql = 'SELECT
-								COUNT(
-										DISTINCT '.$this->get_quote_col($this->c_columns[$column]['sql_as']).') AS `total` 
-										FROM ('.$this->c_query.' ) AS `deriv` 
-										WHERE '.$this->get_quote_col($this->c_columns[$column]['sql_as']).' '.$this->get_like($this->c_columns[$column]['search_mode'].$this->protect_sql($this->escape_special_char($txt),$this->link).$this->c_columns[$column]['search_mode']).' '.$sql_filter;
+                    $sql = 'SELECT
+                                COUNT(
+                                        DISTINCT '.$this->get_quote_col($this->c_columns[$column]['sql_as']).') as total
+                                        FROM ('.$this->c_query.$sql_filter_fast.' ) as deriv WHERE '.$this->get_quote_col($this->c_columns[$column]['sql_as']).' '.$this->get_like($this->c_columns[$column]['search_mode'].$this->protect_sql($this->escape_special_char($txt),$this->link).$this->c_columns[$column]['search_mode']).' '.$sql_filter;
 					$this->exec_sql($sql,__LINE__,__FILE__,__FUNCTION__,__CLASS__, $this->link);
 					$count = $this->rds_result($this->resultat,0, 'total');
 
 					// Query result
-					$sql = 'SELECT DISTINCT '.$this->get_quote_col($this->c_columns[$column]['sql_as']).' FROM ('.$this->c_query.' ) AS `deriv` WHERE '.$this->get_quote_col($this->c_columns[$column]['sql_as']).' '.$this->get_like($this->c_columns[$column]['search_mode'].$this->protect_sql($this->escape_special_char($txt),$this->link).$this->c_columns[$column]['search_mode']).' '.$sql_filter.'ORDER BY 1 ASC LIMIT 6';
-					$this->exec_sql($sql,__LINE__,__FILE__,__FUNCTION__,__CLASS__,$this->link);
+                    $sql = 'SELECT DISTINCT '.$this->get_quote_col($this->c_columns[$column]['sql_as']).' FROM ('.$this->c_query.$sql_filter_fast.' ) as deriv WHERE '.$this->get_quote_col($this->c_columns[$column]['sql_as']).' '.$this->get_like($this->c_columns[$column]['search_mode'].$this->protect_sql($this->escape_special_char($txt),$this->link).$this->c_columns[$column]['search_mode']).' '.$sql_filter.'ORDER BY 1 ASC LIMIT 6';
+                    $this->exec_sql($sql,__LINE__,__FILE__,__FUNCTION__,__CLASS__,$this->link);
 				}
 				else
 				{
@@ -3592,12 +3837,12 @@
 					else 
 					{
 						// Count result
-						$sql = 'SELECT COUNT(DISTINCT '.$this->get_quote_col($this->c_columns[$column]['sql_as']).') as total FROM ('.$this->c_query.' ) AS `deriv` WHERE '.$this->get_quote_col($this->c_columns[$column]['sql_as']).' '.$this->get_like($this->c_columns[$column]['search_mode'].$this->protect_sql($this->escape_special_char($txt),$this->link).$this->c_columns[$column]['search_mode']).' '.$sql_filter;
+						$sql = 'SELECT COUNT(DISTINCT '.$this->get_quote_col($this->c_columns[$column]['sql_as']).') as total FROM ('.$this->c_query.$sql_filter_fast.' ) AS `deriv` WHERE '.$this->get_quote_col($this->c_columns[$column]['sql_as']).' '.$this->get_like($this->c_columns[$column]['search_mode'].$this->protect_sql($this->escape_special_char($txt),$this->link).$this->c_columns[$column]['search_mode']).' '.$sql_filter;
 						$this->exec_sql($sql,__LINE__,__FILE__,__FUNCTION__,__CLASS__, $this->link);
 						$count = $this->rds_result($this->resultat,0, 'total');
 
 						// Query result
-						$sql = 'SELECT DISTINCT '.$this->get_quote_col($this->c_columns[$column]['sql_as']).' FROM ('.$this->c_query.' ) AS `deriv` WHERE '.$this->get_quote_col($this->c_columns[$column]['sql_as']).' '.$this->get_like($this->c_columns[$column]['search_mode'].$this->protect_sql($this->escape_special_char($txt),$this->link).$this->c_columns[$column]['search_mode']).' '.$sql_filter.'ORDER BY 1 ASC LIMIT 6';
+						$sql = 'SELECT DISTINCT '.$this->get_quote_col($this->c_columns[$column]['sql_as']).' FROM ('.$this->c_query.$sql_filter_fast.' ) AS `deriv` WHERE '.$this->get_quote_col($this->c_columns[$column]['sql_as']).' '.$this->get_like($this->c_columns[$column]['search_mode'].$this->protect_sql($this->escape_special_char($txt),$this->link).$this->c_columns[$column]['search_mode']).' '.$sql_filter.'ORDER BY 1 ASC LIMIT 6';
 						$this->exec_sql($sql,__LINE__,__FILE__,__FUNCTION__,__CLASS__,$this->link);
 					}
 				}
@@ -3664,7 +3909,7 @@
 			//==================================================================
 			
 		}
-		/*===================================================================*/	
+		/**===================================================================*/
 
 		
 		/**==================================================================
@@ -3679,7 +3924,7 @@
 
 			return $p_txt;
 		}
-		/*===================================================================*/	
+		/**===================================================================*/
 		
 		
 		/**==================================================================
@@ -3720,7 +3965,7 @@
 			
 			echo $xml;
 		}
-		/*===================================================================*/	
+		/**===================================================================*/
 		
 		
 		private function protect_expreg($p_txt)
@@ -3770,7 +4015,7 @@
 			
 			$this->check_column_lovable();
 		}
-		/*===================================================================*/	
+		/**===================================================================*/
 		
 		
 		/**==================================================================
@@ -3825,7 +4070,7 @@
 			
 			echo $xml;
 		}
-		/*===================================================================*/	
+		/**===================================================================*/
 		
 
 		/**
@@ -3859,13 +4104,13 @@
 			}
 			else 
 			{
-			/*===================================================================*/	
+			/**===================================================================*/
 
 				/**==================================================================
 				 * Initialisation of method variable
 				 ====================================================================*/
 				$s_sql = array();
-				/*===================================================================*/	
+				/**===================================================================*/
 
 				foreach($this->c_columns as $col_key => &$val_key)
 				{
@@ -3876,7 +4121,7 @@
 					{
 						$s_sql[] = $this->prepare_query_insert_filter($p_name,$val_key['sql_as'],'ORD',$val_key['order_priority'],$val_key['order_by'],$col_key);
 					}
-					/*===================================================================*/	
+					/**===================================================================*/
 
 					/**==================================================================
 					 * Column organisation (CPS - Column position)
@@ -3885,7 +4130,7 @@
 					//{
 						$s_sql[] = $this->prepare_query_insert_filter($p_name,$val_key['sql_as'],'CPS',$col_key);
 					//}
-					/*===================================================================*/	
+					/**===================================================================*/
 
 					//==================================================================
 					// Column input head filter (QSC Quick search)
@@ -3909,51 +4154,51 @@
 					{
 						$s_sql[] = $this->prepare_query_insert_filter($p_name,$val_key['sql_as'],'DMD',$col_key,$val_key['display']);
 					}
-					/*===================================================================*/	
+					/**===================================================================*/
 					
 					/**==================================================================
 					 * Column Search mode (SMD - Search Mode)
 					 ====================================================================*/
 					$s_sql[] = $this->prepare_query_insert_filter($p_name,$val_key['sql_as'],'SMD',$col_key,$val_key['search_mode']);
-					/*===================================================================*/	
+					/**===================================================================*/
 					
 					/**==================================================================
 					 * Column Alignment (ALI - Alignment)
 					 ====================================================================*/
 					$s_sql[] = $this->prepare_query_insert_filter($p_name,$val_key['sql_as'],'ALI',$col_key,$val_key['alignment']);
-					/*===================================================================*/	
+					/**===================================================================*/
 					
 					/**==================================================================
 					 * Column size (SIZ - Size)
 					 ====================================================================*/
 					
-					/*===================================================================*/	
+					/**===================================================================*/
 					
 					/**==================================================================
 					 * Column filter (IEQ - Include equal)
 					 ====================================================================*/
 					
-					/*===================================================================*/	
+					/**===================================================================*/
 									
 					/**==================================================================
 					 * Column filter (IBT - Include between)
 					 ====================================================================*/
 					
-					/*===================================================================*/	
+					/**===================================================================*/
 									
 					/**==================================================================
 					 * Column filter (EEQ - Exclude equal)
 					 ====================================================================*/
 					
-					/*===================================================================*/	
+					/**===================================================================*/
 									
 					/**==================================================================
 					 * Column filter (EBT - Exclude between)
 					 ====================================================================*/
 					
-					/*===================================================================*/	
+					/**===================================================================*/
 				}
-				/*===================================================================*/	
+				/**===================================================================*/
 	
 				/**==================================================================
 				 * Get the filter definition to create the query
@@ -3962,7 +4207,7 @@
 				{
 					$this->exec_sql($value,__LINE__,__FILE__,__FUNCTION__,__CLASS__,$this->link);
 				}
-				/*===================================================================*/	
+				/**===================================================================*/
 				
 				// XML return	
 				header("Content-type: text/xml");
@@ -3984,8 +4229,8 @@
 			$_SESSION[$this->c_ssid]['lisha'][$id_child]->define_attribute('__active_readonly_mode',__R__);
 			$_SESSION[$this->c_ssid]['lisha'][$id_child]->define_attribute('__title',$this->lib(41));
 			$_SESSION[$this->c_ssid]['lisha'][$id_child]->define_attribute('__main_query','SELECT 1 AS `id`,2 AS `version` UNION SELECT 2,3 UNION SELECT 4,5 UNION SELECT 6,7 UNION SELECT 8,9 UNION SELECT 10,11 UNION SELECT 12,13');
-			$_SESSION[$this->c_ssid]['lisha'][$id_child]->define_column(1, 'id', 'id',__TEXT__, __WRAP__, __CENTER__);
-			$_SESSION[$this->c_ssid]['lisha'][$id_child]->define_column(2, 'version', 'version',__TEXT__, __WRAP__, __CENTER__);
+			$_SESSION[$this->c_ssid]['lisha'][$id_child]->define_column(1, 'id',__TEXT__, __WRAP__, __CENTER__);
+			$_SESSION[$this->c_ssid]['lisha'][$id_child]->define_column(2, 'version',__TEXT__, __WRAP__, __CENTER__);
 			
 			$_SESSION[$this->c_ssid]['lisha'][$id_child]->define_attribute('__id_theme',$this->c_theme);
 			
@@ -4008,7 +4253,7 @@
 			$xml .= "</lisha>";
 			
 			echo $xml;
-			/*===================================================================*/	
+			/**===================================================================*/
 		}
 
 		/**==================================================================
@@ -4078,8 +4323,9 @@
 				}
 				else
 				{
-					$my_query = 'SELECT DISTINCT '.$this->get_quote_col($this->c_columns[$column]['sql_as']).' FROM ('.$this->c_query.') der';
-				}
+                    //$my_query = 'SELECT DISTINCT '.$this->get_quote_col($this->c_columns[$column]['sql_as']).' FROM ('.$this->rebuild_fast_query($this->c_query);
+                    $my_query = 'SELECT DISTINCT '.$this->get_quote_col($this->c_columns[$column]['sql_as']).' from('.$this->c_query.') der';
+                }
 				$_SESSION[$this->c_ssid]['lisha'][$id_child]->define_attribute('__main_query',$my_query);
 				
 				$_SESSION[$this->c_ssid]['lisha'][$id_child]->define_column($this->c_columns[$column]['sql_as'], $this->c_columns[$column]['name'],$this->c_columns[$column]['data_type'], __WRAP__, __LEFT__);
@@ -4089,7 +4335,16 @@
 				// Column in date format
 				if($this->c_columns[$column]['data_type'] == __DATE__)
 				{
-					$_SESSION[$this->c_ssid]['lisha'][$id_child]->define_attribute('__column_date_format',$this->c_columns[$column]['date_format'],$this->c_columns[$column]['sql_as']);
+                    if(!isset($this->c_columns[$column]['date_format']))
+                    {
+                        // Use default system date format if no one
+                        $mydate = $_SESSION[$this->c_ssid]['lisha']['date_format'];
+                    }
+                    else
+                    {
+                        $mydate = $this->c_columns[$column]['date_format'];
+                    }
+					$_SESSION[$this->c_ssid]['lisha'][$id_child]->define_attribute('__column_date_format',$mydate,$this->c_columns[$column]['sql_as']);
 				}
 				$this->order_priority = 1;
 				$_SESSION[$this->c_ssid]['lisha'][$id_child]->define_order_column($this->c_columns[$column]['sql_as'],__ASC__);
@@ -4142,7 +4397,7 @@
 			echo $xml;
 			//==================================================================
 		}
-		/*===================================================================*/	
+		/**===================================================================*/
 
 
 		/**==================================================================
@@ -4182,16 +4437,30 @@
 			// BUILD ALL ARRAY ENTRIES IN TABLE
 			foreach($this->c_columns as $key => $value) 
 		 	{
-		 	if($value["display"] == "")
-		 	{
-		 		$value["display"] = 0;
-		 	}
-			$query = 'INSERT 
-							INTO `'.__LISHA_TABLE_INTERNAL__.'`
-						 	(`id`, `name`, `display`, `low`, `high`) 
-						 	VALUES ("'.$this->c_ssid.$this->c_id.'", "'.$value["sql_as"].'", "'.$value["name"].'", "'.$value["display"].'", "'.str_pad($key, 4, "0", STR_PAD_LEFT).'")
-					 ';
-			$this->exec_sql($query,__LINE__,__FILE__,__FUNCTION__,__CLASS__,$this->link);
+			 	if($value["display"] == "")
+			 	{
+			 		$value["display"] = 0;
+			 	}
+			 	
+			 	// Display feature : low
+			 	// Search mode : low1
+			 	
+			 	if($value["search_mode"] == '')
+			 	{
+			 		$search_mode = 0;
+			 	}
+			 	else
+			 	{
+			 		$search_mode = 1;
+			 	}	
+				$query = 'INSERT 
+								INTO `'.__LISHA_TABLE_INTERNAL__.'`
+							 	(`id`, `name`, `display`, `low`, `low1`, `ordre`) 
+							 	VALUES ("'.$this->c_ssid.$this->c_id.'", "'.$value["sql_as"].'", "'.$value["name"].'", "'.$value["display"].'", "'.$search_mode.'", "'.$key.'")
+						 ';
+
+				$this->exec_sql($query,__LINE__,__FILE__,__FUNCTION__,__CLASS__,$this->link);
+
 		 	}
 			//==================================================================
 			
@@ -4206,68 +4475,76 @@
 									`name`,
 									`display`,
 									`low`,
-									`high`
+									`low1`,
+									`ordre`
 							FROM `'.__LISHA_TABLE_INTERNAL__.'` 
 							WHERE `id` = "'.$this->c_ssid.$this->c_id.'"
 						  ';
-			
+
 			$_SESSION[$this->c_ssid]['lisha'][$id_child]->define_attribute('__main_query',$main_query);
 
-			
+
 			$_SESSION[$this->c_ssid]['lisha'][$id_child]->define_attribute('__title',$this->lib(118));
-			
+
 			$_SESSION[$this->c_ssid]['lisha'][$id_child]->define_attribute('__display_mode',__CMOD__);
 			$_SESSION[$this->c_ssid]['lisha'][$id_child]->define_attribute('__return_mode',__MULTIPLE__);
-			
+
 			$_SESSION[$this->c_ssid]['lisha'][$id_child]->define_attribute('__active_readonly_mode',__RW__);
-			
+
 			$_SESSION[$this->c_ssid]['lisha'][$id_child]->define_size(100,'%',100,'%');
-			
+
 			$_SESSION[$this->c_ssid]['lisha'][$id_child]->define_attribute('__id_theme',$this->c_theme);
-			
+
 			$_SESSION[$this->c_ssid]['lisha'][$id_child]->define_attribute('__internal_color_mask',$this->c_color_mask);
 
 			$_SESSION[$this->c_ssid]['lisha'][$id_child]->define_attribute('__active_top_bar_page', false);
 			$_SESSION[$this->c_ssid]['lisha'][$id_child]->define_attribute('__active_bottom_bar_page', true);
 			$_SESSION[$this->c_ssid]['lisha'][$id_child]->define_nb_line(50);
 
-			$_SESSION[$this->c_ssid]['lisha'][$id_child]->define_attribute('__active_tech_doc', false);	
-			$_SESSION[$this->c_ssid]['lisha'][$id_child]->define_attribute('__active_user_doc', false);	
-			$_SESSION[$this->c_ssid]['lisha'][$id_child]->define_attribute('__active_ticket', false);									
+			$_SESSION[$this->c_ssid]['lisha'][$id_child]->define_attribute('__active_tech_doc', false);
+			$_SESSION[$this->c_ssid]['lisha'][$id_child]->define_attribute('__active_user_doc', false);
+			$_SESSION[$this->c_ssid]['lisha'][$id_child]->define_attribute('__active_ticket', false);
 
 			$_SESSION[$this->c_ssid]['lisha'][$id_child]->define_attribute('__update_table_name', __LISHA_TABLE_INTERNAL__);
 
 			$_SESSION[$this->c_ssid]['lisha'][$id_child]->define_attribute('__active_column_separation',$this->c_cols_sep_display);
 			$_SESSION[$this->c_ssid]['lisha'][$id_child]->define_attribute('__active_row_separation',$this->c_rows_sep_display);
-			
+
 			$_SESSION[$this->c_ssid]['lisha'][$id_child]->define_attribute('__active_read_only_cells_edit', __RW__);
 			//==================================================================
 			
 			//==================================================================
 			// Define columns
 			//==================================================================			
-			$_SESSION[$this->c_ssid]['lisha'][$id_child]->define_column('display',$this->lib(119),__TEXT__, __WRAP__, __LEFT__);			
+			$_SESSION[$this->c_ssid]['lisha'][$id_child]->define_column('display',$this->lib(119),__TEXT__, __WRAP__, __LEFT__);
 			$_SESSION[$this->c_ssid]['lisha'][$id_child]->define_attribute('__column_input_check_update', __FORBIDDEN__, 'display');
-			
-			$_SESSION[$this->c_ssid]['lisha'][$id_child]->define_column('low',$this->lib(120),__CHECKBOX__, __WRAP__, __CENTER__);			
+
+			$_SESSION[$this->c_ssid]['lisha'][$id_child]->define_column('low',$this->lib(120),__CHECKBOX__, __WRAP__, __CENTER__);
 			$_SESSION[$this->c_ssid]['lisha'][$id_child]->define_attribute('__column_input_check_update', __REQUIRED__, 'low');
 			$_SESSION[$this->c_ssid]['lisha'][$id_child]->define_input_focus('low');					// Focused
 
-			$_SESSION[$this->c_ssid]['lisha'][$id_child]->define_column('high','sorted',__TEXT__, __WRAP__, __CENTER__);			
-			$_SESSION[$this->c_ssid]['lisha'][$id_child]->define_attribute('__column_input_check_update', __FORBIDDEN__, 'high');
-			$_SESSION[$this->c_ssid]['lisha'][$id_child]->define_attribute('__column_display_mode',false,'high');
+			$_SESSION[$this->c_ssid]['lisha'][$id_child]->define_column('low1',$this->lib(125),__CHECKBOX__, __WRAP__, __CENTER__);
+			$_SESSION[$this->c_ssid]['lisha'][$id_child]->define_attribute('__column_input_check_update', __REQUIRED__, 'low1');//__LISTED__
+
+			$_SESSION[$this->c_ssid]['lisha'][$id_child]->define_column('ordre','sorted',__TEXT__, __WRAP__, __CENTER__);
+			$_SESSION[$this->c_ssid]['lisha'][$id_child]->define_attribute('__column_input_check_update', __FORBIDDEN__, 'ordre');
+			$_SESSION[$this->c_ssid]['lisha'][$id_child]->define_attribute('__column_display_mode',false,'ordre');
 
 			$_SESSION[$this->c_ssid]['lisha'][$id_child]->define_column('id','myid',__TEXT__, __WRAP__, __LEFT__);
 			$_SESSION[$this->c_ssid]['lisha'][$id_child]->define_attribute('__column_input_check_update', __FORBIDDEN__, 'id');
 			$_SESSION[$this->c_ssid]['lisha'][$id_child]->define_attribute('__column_display_mode',false,'id');
 
-			$_SESSION[$this->c_ssid]['lisha'][$id_child]->define_column('name','myname',__TEXT__, __WRAP__, __LEFT__);			
+			$_SESSION[$this->c_ssid]['lisha'][$id_child]->define_column('name','myname',__TEXT__, __WRAP__, __LEFT__);
 			$_SESSION[$this->c_ssid]['lisha'][$id_child]->define_attribute('__column_input_check_update', __FORBIDDEN__, 'name');
 			$_SESSION[$this->c_ssid]['lisha'][$id_child]->define_attribute('__column_display_mode',false,'name');
+
 			//==================================================================
 
+			// Internal event
+			$_SESSION[$this->c_ssid]['lisha'][$id_child]->define_lisha_action(__ON_UPDATE__,__AFTER__,$id_child,Array('event_lisha_column_list(\''.$this->c_id.'\')'));
+			
 			// Order
-			$_SESSION[$this->c_ssid]['lisha'][$id_child]->define_order_column('high',__ASC__);
+			$_SESSION[$this->c_ssid]['lisha'][$id_child]->define_order_column('ordre',__ASC__);
 			
 			// Table key
 			$_SESSION[$this->c_ssid]['lisha'][$id_child]->define_key(Array('id','name'));
@@ -4276,12 +4553,13 @@
 			//==================================================================
 			// Line theme mask ( fordidden to define for sub lisha )
 			// Default color group used is 0
+			// No Regeneration of generate_style
 			//==================================================================
 			// default group color with no group defined
-			//$_SESSION[$this->c_ssid]['lisha'][$id_child]->define_line_theme("DDDDEE","0.7em","9999CC","0.7em","99c3ed","0.7em","6690ba","0.7em","000","FFF");
+			//$_SESSION[$this->c_ssid]['lisha'][$id_child]->define_line_theme("FFFFFF","0.7em","9999CC","0.7em","99c3ed","0.7em","6690ba","0.7em","000","FFF");
 			//$_SESSION[$this->c_ssid]['lisha'][$id_child]->define_line_theme("EEEEEE","0.7em","AAAAAA","0.7em","336086","0.7em","003053","0.7em","000","888");
 
-			
+
 			$_SESSION[$this->c_ssid]['lisha'][$id_child]->new_graphic_lisha();
 			
 			//==================================================================
@@ -4305,8 +4583,8 @@
 			else
 			{
 				$button_ok = "ok";
-			}			
-			
+			}
+
 			$_SESSION[$this->c_ssid]['lisha'][$id_child]->prepare_query();
 			$html = '<div style="float:right;">
 						<table style="margin:0;padding:0;border-collapse:collapse;">
@@ -4331,14 +4609,74 @@
 			echo $xml;
 			//==================================================================
 		}
-		/*===================================================================*/	
+		/**===================================================================*/
 
 		
 		/**==================================================================
+		 * check_column_choice ( column_list sublisha )
+		 * Return information about what it's possible or not
+		 ====================================================================*/	
+		public function check_column_choice()
+		{
+			$statut = 'OK';
+			$message = '';
+
+			//==================================================================
+			// All columns hidden ??
+			//==================================================================
+			$query = 'SELECT
+							`name` AS \'name\',
+							`low` AS \'low\'
+						FROM `'.__LISHA_TABLE_INTERNAL__.'`
+						WHERE 		`id` = \''.$this->c_ssid.$this->c_id.'\'
+								AND	`low`= 1
+					 ';
+			$resultat = $this->exec_sql($query,__LINE__,__FILE__,__FUNCTION__,__CLASS__,$this->link,false);
+			
+			if($resultat->num_rows == 0)
+			{
+				$message .= $_SESSION[$this->c_ssid]['lisha']['lib'][124].'<hr>';
+				$statut = 'KO';
+			}
+			//==================================================================
+			
+			//==================================================================
+			// Focus column hidden ??
+			//==================================================================
+			$query = 'SELECT
+							`name` AS \'name\',
+							`low` AS \'low\'
+						FROM `'.__LISHA_TABLE_INTERNAL__.'`
+						WHERE 		`id` = \''.$this->c_ssid.$this->c_id.'\'
+								AND	`low`= 1
+								AND `name` = \''.$this->c_default_input_focus.'\'
+					 ';
+			$resultat = $this->exec_sql($query,__LINE__,__FILE__,__FUNCTION__,__CLASS__,$this->link,false);
+			
+			if($resultat->num_rows == 0)
+			{
+				foreach($this->c_columns as $value)
+			 	{
+				 	if($this->c_default_input_focus == $value['sql_as'])
+				 	{
+				 		
+					 	$message .= str_replace('$1',$value['name'],$_SESSION[$this->c_ssid]['lisha']['lib'][123]).'<hr>';
+						$statut = 'KO';
+				 		break;
+				 	}
+			 	}
+			}
+			//==================================================================
+			
+			$retour = array("STATUT" => $statut,"MESSAGE" => $message);
+			echo json_encode($retour);
+		}
+        /**===================================================================*/
+
+
+        /**==================================================================
 		 * Hide/Show column
 		 * Method called when valide column list management
-		 * @pc_src				: Column id source position
-		 * @p_dst				: Column id target postion
 		 * @p_selected_lines	: Selected line in json format
 		 ====================================================================*/
 		public function show_column($p_selected_lines)
@@ -4360,7 +4698,7 @@
 					 ';
 			$resultat = $this->exec_sql($query,__LINE__,__FILE__,__FUNCTION__,__CLASS__,$this->link,false);
 			
-			if($resultat->num_rows == 0)
+			if($resultat->num_rows == 0 && $this->c_default_input_focus == null)
 			{
 				// All rows hidden
 			}
@@ -4368,7 +4706,8 @@
 			{
 				$query = 'SELECT
 								`name` AS \'name\',
-								`low` AS \'low\'
+								`low` AS \'low\',
+								`low1` AS \'low1\'
 							FROM `'.__LISHA_TABLE_INTERNAL__.'`
 							WHERE `id` = \''.$this->c_ssid.$this->c_id.'\'
 						 ';
@@ -4380,7 +4719,18 @@
 					{
 						if($valeur['sql_as'] == $row['name'])
 						{
+							// Record display
 							$this->c_columns[$clef]['display'] = $row['low'];
+							
+							// Record search mode
+							if($row['low1'] == '1')
+							{
+								$this->c_columns[$clef]['search_mode'] = '%';
+							}
+							else
+							{
+								$this->c_columns[$clef]['search_mode'] = '';
+							}
 							break;
 						}
 					}
@@ -4415,7 +4765,7 @@
 			//==================================================================
 		echo $xml;
 		}
-		/*===================================================================*/	
+		/**===================================================================*/
 		
 		
 		/**==================================================================
@@ -4499,9 +4849,27 @@
 			echo $xml;
 			//==================================================================
 		}
-		/*===================================================================*/	
+		/**===================================================================*/
 
-		
+
+        /**==================================================================
+         * rebuild_fast_query
+         * Rebuild query to get fast count of all rows
+         * @query	: Query to transform
+        ====================================================================*/
+        public function rebuild_fast_query($query)
+        {
+            $indice = strripos($query, "frOm");
+            if(!$indice)
+            {
+                return false;
+            }
+            $where = substr($query,$indice);
+            return $where;
+        }
+        /**===================================================================*/
+
+
 		/**
 		 * Generate the hide / display column menu
 		 * @param integer $column Id of the column 
@@ -4551,7 +4919,7 @@
 			$xml .= "</lisha>";
 			
 			echo $xml;
-			/*===================================================================*/
+			/**===================================================================*/
 		}
 		
 		public function lisha_load_filter($filter_name)
@@ -4599,8 +4967,8 @@
 		
 		/**
 		 * Generate an onmouseover & onmouseout event for help
-		 * @param decimal $id_lib Id of the text
-		 * @param decimal $id_help Id of the help
+		 * @param integer $id_lib Id of the text
+		 * @param integer $id_help Id of the help
 		 */
 		private function hover_out_lib($id_lib,$id_help,$child = '')
 		{
@@ -4608,21 +4976,20 @@
 		}
 		
 		
-		/**
-		 * @method protect for xml content
-		 * @param string $txt
-		 * @return string protected content
-		 * @access private
-		 */
+        /**==================================================================
+         * protect_xml
+         * @txt string      :   String with xml protection
+        ====================================================================*/
 		private function protect_xml($txt)
 		{
 			$txt = rawurlencode($txt);
-		
 			return $txt;
 		}
-		
+        /**===================================================================*/
+
+
 		/**
-		 * Return the max colum priority
+		 * Return the max column priority
 		 */
 		private function get_max_priority()
 		{
@@ -4637,7 +5004,7 @@
 			return $priority;
 		}
 		
-		private function convertBBCodetoHTML($txt)
+		/*private function convertBBCodetoHTML($txt)
 		{
 			$remplacement=true;
 			while($remplacement)
@@ -4669,6 +5036,7 @@
 			return $txt;
 			
 		}
+		*/
 		
 		private function clearBBCode($txt)
 		{
@@ -4746,6 +5114,5 @@
 			return $p_txt;
 		}
 		
-		/*===================================================================*/		
+		/**===================================================================*/
 	}
-?>

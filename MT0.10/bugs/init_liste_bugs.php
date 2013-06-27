@@ -22,39 +22,39 @@
 	// Define main query
 	//==================================================================
 	$query = "	SELECT
-					REP.`ID` AS 'id',
+					`".__MAGICTREE_TABLE_EXTRA_TICK__."`.`ID` AS 'id',
 					TEXD.`text` AS 'business',
-					REP.`Type` AS 'type',
-					-- REP.`Classe` AS 'classe',
+					`".__MAGICTREE_TABLE_EXTRA_TICK__."`.`Type` AS 'type',
+					-- `".__MAGICTREE_TABLE_EXTRA_TICK__."`.`Classe` AS 'classe',
 					TEXC.`text` AS 'classe',
-					REP.`Version` AS 'version',
-					DATE_FORMAT(REP.`DateCrea`,'%Y-%m%-%d') AS 'DateCrea',
+					`".__MAGICTREE_TABLE_EXTRA_TICK__."`.`Version` AS 'version',
+					DATE_FORMAT(`".__MAGICTREE_TABLE_EXTRA_TICK__."`.`DateCrea`,'%Y-%m%-%d') AS 'DateCrea',
 					(
 						SELECT
 							CASE TEX.`id`
 								WHEN 4
-								THEN CONCAT('[S]',REP.`Description`,'[/S]')
+								THEN CONCAT('[S]',`".__MAGICTREE_TABLE_EXTRA_TICK__."`.`Description`,'[/S]')
 								ELSE
-									REP.`Description`
+									`".__MAGICTREE_TABLE_EXTRA_TICK__."`.`Description`
 								END	
 					) AS 'Description',
 					CONCAT('[img]',CLAS.`symbol`,'[/img]') AS 'flag',
 					CONCAT(
 								(
 									SELECT
-							 			CASE IFNULL( LENGTH( REP.`details` ) , 0 ) + IFNULL( LENGTH( REP.`solution` ) , 0 ) 
+							 			CASE IFNULL( LENGTH( `".__MAGICTREE_TABLE_EXTRA_TICK__."`.`details` ) , 0 ) + IFNULL( LENGTH( `".__MAGICTREE_TABLE_EXTRA_TICK__."`.`solution` ) , 0 )
 											WHEN 0
-											THEN CONCAT('[URL=./editbug.php?ssid=".$ssid."&MTLNG=".$_GET['lng']."&ID=',REP.`ID`,']".$_SESSION[$ssid]['page_text'][19]['MT']."[/URL]')
-											ELSE CONCAT('<a target=\"_blank\" onclick=\"lisha_StopEventHandler(event);\"[URL=./viewbug.php?ssid=".$ssid."&MTLNG=".$_GET['lng']."&ID=',REP.`ID`,']".$_SESSION[$ssid]['page_text'][20]['MT']."[/URL]</a>',' / ','<a target=\"_blank\" onclick=\"lisha_StopEventHandler(event);\"[URL=./editbug.php?ssid=".$ssid."&MTLNG=".$_GET['lng']."&ID=',REP.`ID`,']".$_SESSION[$ssid]['page_text'][21]['MT']."[/URL]</a>')
+											THEN CONCAT('[URL=./editbug.php?ssid=".$ssid."&MTLNG=".$_GET['lng']."&ID=',`".__MAGICTREE_TABLE_EXTRA_TICK__."`.`ID`,']".$_SESSION[$ssid]['page_text'][19]['MT']."[/URL]')
+											ELSE CONCAT('<a target=\"_blank\" onclick=\"lisha_StopEventHandler(event);\"[URL=./viewbug.php?ssid=".$ssid."&MTLNG=".$_GET['lng']."&ID=',`".__MAGICTREE_TABLE_EXTRA_TICK__."`.`ID`,']".$_SESSION[$ssid]['page_text'][20]['MT']."[/URL]</a>',' / ','<a target=\"_blank\" onclick=\"lisha_StopEventHandler(event);\"[URL=./editbug.php?ssid=".$ssid."&MTLNG=".$_GET['lng']."&ID=',`".__MAGICTREE_TABLE_EXTRA_TICK__."`.`ID`,']".$_SESSION[$ssid]['page_text'][21]['MT']."[/URL]</a>')
 										END
 								)
 						  ) AS 'details',
-					REP.`Qui` AS 'qui',
+					`".__MAGICTREE_TABLE_EXTRA_TICK__."`.`Qui` AS 'qui',
 					TEX.`text` AS 'status',
-					REP.`reference` AS 'reference',
-					REP.`Last_mod` AS 'last_mod'
+					`".__MAGICTREE_TABLE_EXTRA_TICK__."`.`reference` AS 'reference',
+					`".__MAGICTREE_TABLE_EXTRA_TICK__."`.`Last_mod` AS 'last_mod'
 				FROM
-					`".__MAGICTREE_TABLE_EXTRA_TICK__."` REP,
+					`".__MAGICTREE_TABLE_EXTRA_TICK__."`,
 					`".__MAGICTREE_TABLE_EXTRA_TICK_TEXT__."` TEX,
 					`".__MAGICTREE_TABLE_EXTRA_TICK_CLAS__."` CLAS,
 					`".__MAGICTREE_TABLE_EXTRA_TICK_CLAS__."` CLASC,
@@ -64,21 +64,21 @@
 				WHERE 1 = 1
 					AND CLAS.`id` = TEX.`id`
 					AND CLAS.`class` = 'status'
-					AND CLASC.`id` = REP.`Classe`
+					AND CLASC.`id` = `".__MAGICTREE_TABLE_EXTRA_TICK__."`.`Classe`
 					AND CLASC.`class` = 'class'
-					AND CLASD.`id` = REP.`Business`
+					AND CLASD.`id` = `".__MAGICTREE_TABLE_EXTRA_TICK__."`.`Business`
 					AND CLASD.`class` = 'business'
-					AND REP.`Classe` = TEXC.`id`
-					AND REP.`Business` = TEXD.`id` 
+					AND `".__MAGICTREE_TABLE_EXTRA_TICK__."`.`Classe` = TEXC.`id`
+					AND `".__MAGICTREE_TABLE_EXTRA_TICK__."`.`Business` = TEXD.`id`
 					AND TEX.`id_lang` = TEXC.`id_lang`
 					AND TEX.`id_lang` = TEXD.`id_lang`
-					AND REP.`status` = TEX.`id`
+					AND `".__MAGICTREE_TABLE_EXTRA_TICK__."`.`status` = TEX.`id`
 					AND TEX.`id_lang` = '".$_GET['lng']."'
 				";
 
 	$obj_lisha_bug->define_attribute('__main_query', $query);
 	//==================================================================
-	
+
 	//==================================================================
 	// Lisha display setup
 	//==================================================================
@@ -106,7 +106,7 @@
 	
 	$obj_lisha_bug->define_attribute('__key_url_custom_view', 'fixe');		// Defined key for quick custom view loader in url browser
 
-	$obj_lisha_bug->define_attribute('__update_table_name', "bugsreports");	// Update table
+	$obj_lisha_bug->define_attribute('__update_table_name', __MAGICTREE_TABLE_EXTRA_TICK__);	// Update table
 	//==================================================================
 		
 		
@@ -120,7 +120,7 @@
 		//==================================================================
 		// define column : Business domain
 		//==================================================================
-		$obj_lisha_bug->define_column('business',$_SESSION[$ssid]['page_text'][13]['ST'],__TEXT__,__WRAP__,__CENTER__,__EXACT__);						
+		$obj_lisha_bug->define_column('business',$_SESSION[$ssid]['page_text'][13]['ST'],__TEXT__,__WRAP__,__CENTER__);
 		$obj_lisha_bug->define_attribute('__column_input_check_update', __REQUIRED__,'business');
 		
 		$obj_lisha_bug->define_lov("	SELECT
@@ -297,7 +297,16 @@
 	//==================================================================
 	$obj_lisha_bug->define_key(Array('id'));
 	//==================================================================
-		
+
+    //==================================================================
+    // Native field name in main table
+    // Optional declaration but can provide fast response time
+    // Don't add anything here if your have a doubt
+    // null means use main table name
+    //==================================================================
+    $obj_lisha_bug->define_fast_field(Array());
+    //==================================================================
+
 	//==================================================================
 	// Column order : Define in ascending priority means first line defined will be first priority column to order by and so on...
 	//==================================================================
@@ -311,14 +320,10 @@
 	$obj_lisha_bug->define_line_theme("EEEEEE","0.7em","D0DCE0","0.7em","AEE068","0.7em","8CC046","0.7em","000","000");
 	//==================================================================
 
-	
-	
-	
 	//==================================================================
 	// Do not remove this bloc
 	// Keep this bloc at the end
 	//==================================================================
 	$obj_lisha_bug->generate_public_header();   
 	$obj_lisha_bug->generate_header();
-	//==================================================================			
-?>
+	//==================================================================

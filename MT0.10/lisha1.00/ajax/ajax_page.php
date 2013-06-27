@@ -112,5 +112,8 @@
 			// Update column hide/show
 			echo $_SESSION[$ssid]['lisha'][$lisha_id]->show_column($_POST['selected_lines']);
 			break;
+		case 28:
+			// Check column list user choice
+			echo $_SESSION[$ssid]['lisha'][$lisha_id]->check_column_choice();
+			break;
 	}
-?>

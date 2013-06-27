@@ -16,7 +16,7 @@
 		}
 		$new_ssid = __PREFIX_URL_COOKIES__.sha1(mt_rand().microtime()).mt_rand();
 		//==================================================================
-		// Recall, if needed current page with ssid identifier
+		// Refresh, if needed current page with ssid identifier
 		//==================================================================
 		echo '<html>
 				<head>
@@ -37,5 +37,4 @@
 	 * Start session on ssid name
 	 ====================================================================*/
 	require('active_session.php');
-	/*===================================================================*/	
-?>
+	/**===================================================================*/

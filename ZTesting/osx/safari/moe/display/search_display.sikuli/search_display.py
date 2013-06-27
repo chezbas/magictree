@@ -77,7 +77,7 @@ while boucle < nbLoopMax:
         strLng = sys.argv[3] 
     paste(query_begin+strLng+query_end)
     click("Excuter-1.png")
-    rightClick(Pattern("title.png").targetOffset(-9,19))
+    rightClick(Pattern("title.png").targetOffset(-11,30))
     click("ExaminerImen.png")
     click(Pattern("Vt.png").similar(0.89).targetOffset(7,6))
     doubleClick(Pattern("vtdV8.png").targetOffset(31,7)) 

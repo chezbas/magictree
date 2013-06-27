@@ -385,3 +385,11 @@
 	background-position: -880px -20px;
 	cursor: pointer;
 }
+
+.__grey_ico_col_feat {
+	background-position: -920px 0;
+}
+
+.__grey_ico_col_feat:hover {
+	background-position: -920px -20px;
+}

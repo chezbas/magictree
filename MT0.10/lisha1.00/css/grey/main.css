@@ -103,6 +103,7 @@ td.__grey_table_page_selection:hover
 div.__grey_column_title
 {
 	cursor:pointer;
+    height: 20px;
 	line-height: 20px;
 	font-size: 0.7em;
 	font-weight:bold;

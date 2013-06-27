@@ -17,6 +17,7 @@
 	define("__CMOD__","child");										// child mode
 	define("__SIMPLE__","simple");									// LMOD simple return
 	define("__MULTIPLE__","multiple");								// LMOD multiple return
+    define("__NONE__","");			    							// None
 	define("__ASC__","ASC");										// Ascending order
 	define("__DESC__","DESC");										// Descending order
 	define("__ADD__","ADD");										// Add an order clause
@@ -63,4 +64,3 @@
 	define("__lisha_PREVIOUS__","__PREVIOUS__");
 	define("__lisha_FIRST__","__FIRST__");
 	define("__lisha_LAST__","__LAST__");
-?>

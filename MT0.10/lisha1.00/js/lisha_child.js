@@ -41,11 +41,11 @@ function lisha_child_insert_into_parent(el,parent,parent_column)
 
 	// Set the focus into the search bloc of the parent column
 	document.getElementById('th_input_'+parent_column+'__'+parent).focus();
-	
+
 	// Close the child lisha
 	document.getElementById('internal_lisha_'+parent).style.display = 'none';
 	lisha_set_innerHTML('internal_lisha_'+parent,'');
-	
+
 	// Kill the object of the child lisha (json)
 	eval('delete lisha.'+parent+'_child;');
 	
@@ -59,7 +59,7 @@ function lisha_child_insert_into_parent(el,parent,parent_column)
 	}
 	// Search
 	//lisha_define_filter(parent,encodeURIComponent(document.getElementById('th_input_'+parent_column+'__'+parent).value),parent_column,false);
-	
+
 	// Hide the cover
 	lisha_cover_with_filter(parent);
 }

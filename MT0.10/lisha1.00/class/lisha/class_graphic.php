@@ -2,7 +2,7 @@
 	class graphic_lisha
 	{
 		//==================================================================
-		// Define private attributs
+		// Define private attributes
 		//==================================================================
 		private $c_id;					// lisha id
 		private $c_ssid;				// Session id
@@ -17,16 +17,15 @@
 		private $c_width;				// lisha width
 		private $c_w_unity;				// lisha unity width (px,%)
 		private $c_nb_line;				// Number of line per page
-		private $c_default_page;		// default page number
-		
+
+        private $c_columns_init;		// Original columns values
+
 		private $c_title;				// lisha title
 		private $c_color_mask;			// Color mask (array())
 		private $c_group_of_color_column_name;	// // Group of color column name
 		private $c_software_version;	// Version of the lisha
-		private $c_dir_img;				// Directory for images
 		private $c_mode;				// LMOD or NMOD
-		private $c_return_mode;			// Mode of return (in LMOD mode)
-		
+
 		// Page 
 		private $c_active_page;			// Current page 
 		private $c_limit_min;			// Min value of the limit
@@ -43,20 +42,19 @@
 		private $c_rows_sep_display;
 		private $c_page_selection_display_header;
 		private $c_page_selection_display_footer;
-		private $c_param_adv_filter;
 		private $c_type_internal_lisha;
 		private $c_navbar_txt_activate;
 		private $c_navbar_refresh_button_activate;
 		private $c_navbar_nav_button_activate;
 		private $c_navbar_txt_line_per_page_activate;
-		private $c_default_input_focus;				// name of column will get the focus
 		private $c_default_input_focus_id;			// id of column will get the focus
 		private $c_title_display;
 		private $c_lmod_specified_width;
 		private $c_toolbar_delete_btn;
 		private $c_toolbar_add_btn;
+        private $c_quick_search;                    // true means quick search on head column is enable
 
-		private $matchcode;				// Matchcode between internal external call and function name
+		private $matchcode;				            // Matchcode between internal external call and function name
 		//==================================================================
 
 		//==================================================================
@@ -102,6 +100,7 @@
 			$this->c_lmod_specified_width = null;
 			$this->c_toolbar_delete_btn = true;
 			$this->c_toolbar_add_btn = true;
+            $this->c_quick_search = true;
 			
 			//==================================================================
 			// Define matchcode graphical array between external and internal attribut name
@@ -127,15 +126,17 @@
 			'__active_column_separation'										=> array('c_cols_sep_display','A'),
 			'__active_row_separation'											=> array('c_rows_sep_display','A'),
 			'__title'															=> array('c_title','A'),
+            '__max_lines_by_page'												=> array('c_max_line_per_page','A'),
 			'__active_title'													=> array('c_title_display','A'),
 			'__active_readonly_mode'											=> array('c_readonly','A'),
 			'__active_user_doc'													=> array('c_help_button','A'),
 			'__active_tech_doc'													=> array('c_tech_help_button','A'),
+            '__active_quick_search'												=> array('c_quick_search','A'),
 			'__active_ticket'													=> array('c_tickets_link','A')
 			);
 			//==================================================================
 		}
-		/*===================================================================*/	
+		/**===================================================================*/
 		
 		
 		/**==================================================================
@@ -264,7 +265,7 @@
 			//==================================================================
 			$lisha .= '<div id="lisha_table_mask_'.$this->c_id.'" class="__'.$this->c_theme.'_table_mask_'.$this->c_id.'"></div><div class="__'.$this->c_theme.'_lisha_content_'.$this->c_id.'" id="liste_'.$this->c_id.'">';
 			$lisha .= '<table style="border-collapse:collapse;" cellpadding="0" cellspacing="0" id="table_liste_'.$this->c_id.'">';
-			$lisha .= $this->generate_data_content($p_resultat,$p_edit);
+            $lisha .= $this->generate_data_content($p_resultat,$p_edit);
 			$lisha .= '</table>';
 			$lisha .= '</div>';
 			//==================================================================
@@ -319,7 +320,7 @@
 			// Return lisha
 			return $lisha;
 		}
-		/*===================================================================*/	
+		/**===================================================================*/
 		
 
 		/**==================================================================
@@ -346,7 +347,7 @@
 			
 			return $style;
 		}
-		/*===================================================================*/	
+		/**===================================================================*/
 		
 		
 		/**==================================================================
@@ -355,6 +356,7 @@
 		 ====================================================================*/
 		private function generate_color_line_style()
 		{
+			//error_log(print_r($this->c_color_mask,true));
 			$style = '/* ---------- Begin color line style ---------- */';
 			foreach($this->c_color_mask as $clef => $valeur)
 			{
@@ -443,7 +445,7 @@
 			$style .= '/* ---------- End color line style ---------- */';
 			return $style;
 		}
-		/*===================================================================*/	
+		/**===================================================================*/
 		
 		
 		/**==================================================================
@@ -528,9 +530,7 @@
 			$style .= 'overflow-y: auto;';
 			$style .= 'z-index: 1;';
 			$style .= 'display: none;';
-			//$style .= 'background: url('.$this->c_dir_img.'/../transparent/transp_light.png) repeat;';
-			
-									
+
 			if($this->c_h_unity == '%')
 			{
 				$style .= 'position: absolute;';
@@ -607,7 +607,7 @@
 						
 			return $style;
 		}
-		/*===================================================================*/	
+		/**===================================================================*/
 		
 			
 		/**==================================================================
@@ -619,7 +619,7 @@
 		{
 			$style_ln = '';
 			$style_fp = '';
-			
+
 			$class_ln = ' c_pointer';
 			$class_fp = ' c_pointer';
 			$onclick_fp_first = '';
@@ -735,7 +735,7 @@
 			
 			if($this->c_mode != __CMOD__ && $this->c_navbar_txt_activate)
 			{
-				$html .= '<td class="__'.$this->c_theme.'_infobar __'.$this->c_theme.'_infobar_separator_left">'.$this->lib(25).' : '.($this->c_limit_min + 1).' '.$this->lib(26).' '.$to.' '.$this->lib(27).' '.$this->c_recordset_line.' '.$this->lib(28).' ';
+				$html .= '<td class="__'.$this->c_theme.'_infobar __'.$this->c_theme.'_infobar_separator_left">'.$this->lib(25).' : '.($this->c_limit_min + 1).' '.$this->lib(26).' '.$to.' '.$this->lib(27).' '.number_format($this->c_recordset_line,0,'', ' ').' '.$this->lib(28).' ';
 			
 				if($this->c_active_page == ceil($this->c_recordset_line / $this->c_nb_line) && ceil($this->c_recordset_line / $this->c_nb_line) > 1)
 					$html .= str_replace('$x',$nb_line,$this->lib(29));
@@ -747,7 +747,7 @@
 
 			return $html;
 		}
-		/*===================================================================*/	
+		/**===================================================================*/
 		
 
 		/**==================================================================
@@ -766,7 +766,7 @@
 			//==================================================================
 			$html .= '<td align="left" id="header_th_0__'.$this->c_id.'" class="__'.$this->c_theme.'__cell_opt_h"><div id="th0_'.$this->c_id.'">';
 
-			if(1==1) // Display lisha version or not
+			if(1==1) // Display lisha version or not todo
 			{
 				// Create the first column (checkbox and edit button)
 				$html .= '<div id="thf0_'.$this->c_id.'" class="__'.$this->c_theme.'__lisha_version" ';
@@ -795,6 +795,9 @@
 				$cursor = '';
 			}
 			//==================================================================
+
+            $ondblclick = '';
+            $onmousedown = '';
 
 			//==================================================================
 			// Browse all columns
@@ -852,13 +855,21 @@
 						$event = $this->hover_out_lib(40,40).' onmousedown="click_column_order(\''.$this->c_id.'\','.$key_col.');"';
 					}
 					//==================================================================
-					
-					$watermark = '';
+
+                    $watermark = '';
 					// Cell edition only on non __FORBIDDEN__ column
 					if(isset($val_col["rw_flag"]) && $val_col["rw_flag"] == __FORBIDDEN__ || $val_col['sql_as'] == $this->c_group_of_color_column_name)
 					{
 						// limited action
-						$watermark = 'style="opacity:	0.4;"';
+                        // Display mode ??
+                        if(!$this->c_readonly)
+                        {
+                            $watermark = 'style="opacity:	0.4;"';
+                        }
+                        else
+                        {
+                            $watermark = '';
+                        }
 					}
 					//==================================================================
 					
@@ -1037,7 +1048,7 @@
 					}
 					//==================================================================
 
-					if(
+					/*if(
 						$p_edit != false
 						&& (isset($val_col["rw_flag"]) && $val_col["rw_flag"] == __FORBIDDEN__ || $val_col['sql_as'] == $this->c_group_of_color_column_name)
 						)
@@ -1047,7 +1058,11 @@
 					else
 					{
 						$html .= '<td id="th_1_c'.$key_col.'_'.$this->c_id.'" class="__lisha_unselectable" style="width:20px;"><div style="width:20px;margin:0;" '.$this->hover_out_lib(21,21).' oncontextmenu="'.$oncontextmenu.'" class="'.$class_btn_menu.'" onclick="lisha_toggle_header_menu(\''.$this->c_id.'\','.$key_col.');" id="th_menu_'.$key_col.'__'.$this->c_id.'"></div></td>';
-					}
+					}*/
+					$html .= '<td id="th_1_c'.$key_col.'_'.$this->c_id.'" class="__lisha_unselectable" style="width:20px;"><div style="width:20px;margin:0;" '.$this->hover_out_lib(21,21).' oncontextmenu="'.$oncontextmenu.'" class="'.$class_btn_menu.'" onclick="lisha_toggle_header_menu(\''.$this->c_id.'\','.$key_col.');" id="th_menu_'.$key_col.'__'.$this->c_id.'"></div></td>';
+					
+					
+					
 					
 					$html .= '<td id="th_2_c'.$key_col.'_'.$this->c_id.'" align="left" class="__'.$this->c_theme.'__cell_h">';
 
@@ -1061,8 +1076,19 @@
 					{
 						$contextual_input = 'return false;';
 					}
-		
-					$html .= '<div style="margin:0 3px;"><input value="'.str_replace('"','&quot;',$filter_input_value).'" class="__'.$this->c_theme.'__input_h full_width" '.$state_filter_input.' id="th_input_'.$key_col.'__'.$this->c_id.'" '.$contextual_input.' type="text" style="margin: 2px 0;" size=1 onkeypress="if(document.getElementById(\'chk_edit_c'.$key_col.'_'.$this->c_id.'\'))document.getElementById(\'chk_edit_c'.$key_col.'_'.$this->c_id.'\').checked=true;lisha_input_keydown(event,this,\''.$this->c_id.'\','.$key_col.');" onchange="lisha_col_input_change(\''.$this->c_id.'\','.$key_col.');"/></div>';
+
+                    // Active or not quick search on change into input text box area
+                    // Event call when get/lost focus on inpiut box
+                    if($this->c_quick_search)
+                    {
+                        $onchange = 'onchange="lisha_col_input_change(\''.$this->c_id.'\','.$key_col.');"';
+                    }
+                    else
+                    {
+                        $onchange = '';
+                    }
+
+					$html .= '<div style="margin:0 3px;"><input value="'.str_replace('"','&quot;',$filter_input_value).'" class="__'.$this->c_theme.'__input_h full_width" '.$state_filter_input.' id="th_input_'.$key_col.'__'.$this->c_id.'" '.$contextual_input.' type="text" style="margin: 2px 0;" size=1 onkeypress="if(document.getElementById(\'chk_edit_c'.$key_col.'_'.$this->c_id.'\'))document.getElementById(\'chk_edit_c'.$key_col.'_'.$this->c_id.'\').checked=true;lisha_input_keydown(event,this,\''.$this->c_id.'\','.$key_col.',\''.$this->c_quick_search.'\',\''.$p_edit.'\');"'.$onchange.'/></div>';
 
 					
 					if($p_edit != false)
@@ -1084,8 +1110,8 @@
 				$id_col_display = $id_col_display + 1;
 			}
 			//==================================================================
-			
-			$html .= '<td id="th_0_c'.($key_col+1).'_'.$this->c_id.'" '.$this->hover_out_lib(17,17).' '.$ondblclick.' '.$onmousedown.' class="__'.$this->c_theme.'__cell_h_resizable'.$cursor.'"><div class="__'.$this->c_theme.'__cell_resize"></div></td>';
+
+			$html .= '<td id="th_0_c'.($id_col_display+1).'_'.$this->c_id.'" '.$this->hover_out_lib(17,17).' '.$ondblclick.' '.$onmousedown.' class="__'.$this->c_theme.'__cell_h_resizable'.$cursor.'"><div class="__'.$this->c_theme.'__cell_resize"></div></td>';
 			$html.= '<td><div style="width:200px"></div></td>';
 			$html .= '</tr>';
 
@@ -1097,7 +1123,7 @@
 				
 			return $html;
 		}
-		/*===================================================================*/
+		/**===================================================================*/
 		
 		
 		/**==================================================================
@@ -1119,10 +1145,7 @@
 			$lisha = '';
 			
 			// Quantity of rows
-			$num_rows = $this->c_obj_bdd->rds_num_rows($p_resultat);
-			
-			// Line selected flag
-			$line_selected = false;
+			$num_rows = $this->c_recordset_line;
 			
 			// Last displayed column
 			$last_display_col = $this->get_last_display_column();
@@ -1136,8 +1159,21 @@
 			//==================================================================
 						
 			// Parsing sql result
+            // Move to right line
+            //$this->c_obj_bdd->rds_data_seek($p_resultat,$this->c_limit_min);
+            //for($i=1; $i <=$this->c_max_line_per_page; $i++)
 			while($row = $this->c_obj_bdd->rds_fetch_array($p_resultat))
 			{
+                // Read current row
+                /*$row = $this->c_obj_bdd->rds_fetch_array($p_resultat);
+                if(!$row)
+                {
+                    // No more record
+                    // Todo
+                    // ...
+                    //$this->c_page_qtt_line = $i;
+                }
+               */
 				// Manages the end of line, add a cell_sep if it is the last line
 				if($num_rows == $line) $sep_cell = '__'.$this->c_theme.'_cell_sep';
 				
@@ -1187,11 +1223,11 @@
 				//==================================================================
 				
 				//==================================================================
-				// Line selected managment
+				// Line selected management
 				//==================================================================
 				if(is_array($this->c_selected_lines['key_concat']) && in_array($row['lisha_internal_key_concat'],$this->c_selected_lines['key_concat']))
 				{
-					// The line is seleted
+					// The line is selected
 					$line_selected_class = 'line_selected_color_'.$current_group_value.$i_color.'_'.$this->c_id;
 					$checked = 'checked';
 				}
@@ -1230,7 +1266,14 @@
 							$lisha .= '<tr onclick="lisha_load_filter(\''.$this->c_id_parent.'\',\'div_td_l'.$line.'_c'.$this->get_id_col_lov($this->c_col_return).'_'.$this->c_id.'\');" id="l'.$line.'_'.$this->c_id.'" class="lc_'.$current_group_value.$i_color.'_'.$this->c_id.'" >';
 							break;
 						case '__COLUMN_LIST__':
-							$lisha .= '<tr onclick="lisha_checkbox('.$line.',event,null,\''.$this->c_id.'\');" id="l'.$line.'_'.$this->c_id.'" class="lc_'.$current_group_value.$i_color.'_'.$this->c_id.'">';
+                            if($p_edit)
+                            {
+                                $lisha .= '<tr id="l'.$line.'_'.$this->c_id.'" class="lc_'.$current_group_value.$i_color.'_'.$this->c_id.'">';
+                            }
+                            else
+                            {
+                                $lisha .= '<tr onclick="lisha_checkbox('.$line.',event,null,\''.$this->c_id.'\');" id="l'.$line.'_'.$this->c_id.'" class="lc_'.$current_group_value.$i_color.'_'.$this->c_id.'">';
+                            }
 							break;
 					}
 				}
@@ -1296,36 +1339,54 @@
 						{
 							if($content == 0)
 							{
-								$content = '<input type="checkbox">';
+								$content = '<input type="checkbox"';
 							}
 							else
 							{
-								$content = '<input type="checkbox" checked>';
+								$content = '<input type="checkbox" checked';
 							}
+
+                            // Disable checkbox if you are currently updating set of rows
+                            if($p_edit)
+                            {
+                                $content .= ' DISABLED>';
+                            }
+                            else
+                            {
+                                $content .= '>';
+                            }
 						}
 						//==================================================================
 						
 						//==================================================================
 						// Cell edition
 						//==================================================================
-						$watermark = '';
 						$edit_cell = '';
 						// Cell edition only on non __FORBIDDEN__ column
 						if(
 							isset($this->c_columns[$key_col]["rw_flag"])
 							&& $val_col["rw_flag"] == __FORBIDDEN__
 							|| $val_col['sql_as'] == $this->c_group_of_color_column_name
+                            || $p_edit
 						  )
 						{
 							// limited action
-							$watermark = 'style="opacity:	0.4;"';
+                            // Display mode ??
+                            if(!$this->c_readonly)
+                            {
+                                $watermark = 'style="opacity:	0.4;"';
+                            }
+                            else
+                            {
+                                $watermark = '';
+                            }
 							$edit_cell = '';
 						}
 						else
 						{
 							// OK for cell edition
 							$watermark = '';
-							if($this->c_readonly == __RW__ && !$this->c_cells_edit)
+							if($this->c_readonly == __RW__ && !$p_edit)
 							{
 								$edit_cell = 'onclick=lisha_StopEventHandler(event);edit_cell(event,\''.$line.'\',\''.$key_col.'\',\''.$this->c_id.'\',\''.$this->c_columns[$key_col]["data_type"].'\');';
 							}
@@ -1368,7 +1429,7 @@
 			
 			return $lisha;
 		}
-		/*===================================================================*/
+		/**===================================================================*/
 		
 		
 		/**
@@ -1388,42 +1449,56 @@
 					break;
 			}
 		}
-		
-		/**
-		 * Get the id of the last displayed column
-		 */
+
+
+        /**==================================================================
+         * Get id number of last displayed column
+        ====================================================================*/
 		private function get_last_display_column()
 		{
 			$last_display_col = 0;
 			
 			foreach($this->c_columns as $key_col => $val_col)
 			{
-				if($val_col['display']) $last_display_col = $key_col;
+				if($val_col['display'])
+                {
+                    $last_display_col = $key_col;
+                }
 			}
-			
-			return $last_display_col;
+
+            return $last_display_col;
 		}
-		
+        /**===================================================================*/
+
+
+        /**==================================================================
+         * get_id_col_lov
+         * Return column name in query
+        ====================================================================*/
 		private function get_id_col_lov($p_name)
 		{
 			$i = 1;
-			foreach($this->c_columns as $key => $value) 
+			foreach($this->c_columns as $value)
 			{
 				if($p_name == $value['sql_as'])
-					return $i;
+                {
+                    return $i;
+                }
 				$i = $i + 1;
 			}
-			
+            // Standard distinct return column always 1
 			return 1;
 		}
-		
+        /**===================================================================*/
+
+
 		/**
 		 * Generate lisha toolbar
 		 */
 		public function generate_toolbar($p_edit = false, $p_resultat = false)
 		{
-			$html  = '<table style="border:0px solid red;margin:0;padding:0;height:22px;" cellpadding="0" cellspacing="0">';
-			$html .= '<tr style="border:0px solid red;">';
+			$html  = '<table style="border:0 margin:0;padding:0;height:22px;" cellpadding="0" cellspacing="0">';
+			$html .= '<tr style="border:0;">';
 			
 			if(count($this->c_columns) > 1)
 				$html .= '<td class="btn_toolbar toolbar_separator_right grey_el"><div class="__'.$this->c_theme.'_ico __'.$this->c_theme.'_ico_search_mode" '.$this->hover_out_lib(0,0).'></div></td>';
@@ -1433,7 +1508,7 @@
 				if($p_edit == false)
 				{
 					//$html .= '<td class="btn_toolbar toolbar_separator_right"><div class="__'.$this->c_theme.'_ico __'.$this->c_theme.'_ico_column_display" onclick="/*lisha_hide_display_col_lov(\''.$this->c_id.'\',__HIDE_DISPLAY_COLUMN__);*/" '.$this->hover_out_lib(1,1).'></div></td>';
-					$html .= '<td class="toolbar_separator_right btn_toolbar"><div id="'.$this->c_id.'_button_columns_list" onclick="list_columns(\''.$this->c_id.'\',__COLUMN_LIST__);" class="__'.$this->c_theme.'_ico __'.$this->c_theme.'_ico_sort-hide" '.$this->hover_out_lib(1,1).'></div></td>';
+					$html .= '<td class="toolbar_separator_right btn_toolbar"><div id="'.$this->c_id.'_button_columns_list" onclick="list_columns(\''.$this->c_id.'\',__COLUMN_LIST__);" class="__'.$this->c_theme.'_ico __'.$this->c_theme.'_ico_col_feat" '.$this->hover_out_lib(1,1).'></div></td>';
 					
 					$html .= '<td class="btn_toolbar toolbar_separator_left"><div class="__'.$this->c_theme.'_ico __'.$this->c_theme.'_ico_save" '.$this->hover_out_lib(3,3).' onclick="lisha_display_prompt_create_filter(\''.$this->c_id.'\');"></div></td>';
 					$html .= '<td class="btn_toolbar toolbar_separator_right"><div id="'.$this->c_id.'_button_load_filter" class="__'.$this->c_theme.'_ico __'.$this->c_theme.'_ico_load" '.$this->hover_out_lib(4,4).' onclick="lisha_load_filter_lov(\''.$this->c_id.'\',__LOAD_FILTER__);"></div></td>';
@@ -1463,7 +1538,7 @@
 				
 				if($p_edit != false)
 				{
-					$html .= '<td class="btn_toolbar toolbar_separator_left"><div class="__'.$this->c_theme.'_ico __'.$this->c_theme.'_ico_save" onclick="save_lines(\''.$this->c_id.'\');" '.$this->hover_out_lib(50,50).'></div></td>';
+					$html .= '<td class="btn_toolbar toolbar_separator_left"><div class="__'.$this->c_theme.'_ico __'.$this->c_theme.'_ico_save" onclick="save_lines(event,\''.$this->c_id.'\',\'add\');" '.$this->hover_out_lib(50,50).'></div></td>';
 				}
 				else
 				{
@@ -1525,16 +1600,18 @@
 			return $html;
 		}
 		
-		/**
-		 * Generate an onmouseover & onmouseout event for help
-		 * @param decimal $id_lib Id of the text
-		 * @param decimal $id_help Id of the help
-		 */
+        /**==================================================================
+         * hover_out_lib
+         * Generate an onmouseover & onmouseout event for help
+         * @id_lib integer Id of the text
+         * @id_help integer Id of the help
+        ====================================================================*/
 		private function hover_out_lib($id_lib,$id_help)
 		{
 			return 'onmouseout="lisha_lib_out(\''.$this->c_id.'\');" onmouseover="lisha_lib_hover('.$id_lib.','.$id_help.',\''.$this->c_id.'\');"';
 		}
-				
+        /**===================================================================*/
+
 		public function generate_lmod_header()
 		{
 			$html = '<div id="lisha_lmod_'.$this->c_id.'" class="__'.$this->c_theme.'_lisha_lmod">
@@ -1589,32 +1666,35 @@
 		 ====================================================================*/
 		public function clear_all_order()
 		{
-			foreach($this->c_columns as $key => &$value)
+			foreach($this->c_columns as &$value)
 			{
 				$value["order_by"] = false;
 				$value["order_priority"] = false;
 			}
 		}
-		/*===================================================================*/	
+		/**===================================================================*/
 		
 		
 		/**==================================================================
 		 * lisha_generate_calendar
-		 * @p_column 		: colmun identifier
-		 * @p_input			: input string of column header
+		 * @p_column 		: column identifier
 		 * @p_year 			: numeric year in for digits
 		 * @p_month			: numeric month two digits
 		 * @p_day			: numeric day of month
 		 ====================================================================*/
-		public function lisha_generate_calendar($p_column,$p_input,$p_year,$p_month,$p_day)
+		public function lisha_generate_calendar($p_column,$p_year,$p_month,$p_day)
 		{
 			$p_month = ltrim($p_month,'0');
 			$p_day = ltrim($p_day,'0');
 						
 			$actual_year = $p_year;
 			$actual_month = $p_month;
+            if(!is_numeric($p_day))
+            {
+            $p_day = 1;
+        }
 			$actual_day = $p_day;
-			
+
 			//==================================================================
 			// Limit year, month, day values
 			//==================================================================
@@ -1645,7 +1725,6 @@
 			//==================================================================
 			if($actual_year == 1)
 			{
-				$previous_year = 1;
 				$previous_year_class = 'grey_el';
 				$previous_year_click = '';
 			}
@@ -1664,7 +1743,6 @@
 			//==================================================================
 			if($actual_month == 1)
 			{
-				$previous_month = 1;
 				$previous_month_class = 'grey_el';
 				$previous_month_click = '';
 			}
@@ -1677,7 +1755,6 @@
 			
 			if($actual_month == 12)
 			{
-				$next_month = 12;
 				$next_month_class = 'grey_el';
 				$next_month_click = '';
 			}
@@ -1694,7 +1771,6 @@
 			//==================================================================
 			if($actual_day == 1)
 			{
-				$previous_day = 1;
 				$previous_day_class = 'grey_el';
 				$previous_day_click = '';
 			}
@@ -1707,7 +1783,6 @@
 			
 			if($actual_day == $nbr_day_of_month)
 			{
-				$next_day = $nbr_day_of_month;
 				$next_day_class = 'grey_el';
 				$next_day_click = '';
 			}
@@ -1811,8 +1886,9 @@
 							</table>
 						</div>';
 			echo $calendar;
+            return null;
 		}
-		/*===================================================================*/	
+		/**===================================================================*/
 		
 		
 		/**==================================================================
@@ -1822,13 +1898,15 @@
 		{
 			$this->c_recordset_line = $nbr;
 		}
-				
+        /**===================================================================*/
+
 		
 		public function define_parent($p_parent,$p_column)
 		{
 			$this->c_id_parent = $p_parent;
 			$this->c_id_parent_column = $p_column;
 		}
+        /**===================================================================*/
 
 		
 		/**==================================================================
@@ -1845,7 +1923,7 @@
 			$this->c_height = $p_height;
 			$this->c_h_unity = $p_h_unity;
 		}
-		/*===================================================================*/
+		/**===================================================================*/
 		
 		
 		/**==================================================================
@@ -1885,11 +1963,11 @@
 													"color_text" => $p_color_text,
 													"color_text_selected" => $p_color_text_selected);
 		}
-		/*===================================================================*/
+		/**===================================================================*/
 		
 								
 		/**==================================================================
-		 * General or column define attributs fonction
+		 * General or column define attributes fonction
 		 * @p_attribute		: attribute name
 		 * @p_value			: value to setup into attribute
 		 * @p_matched 		: true means matched once in class_lisha
@@ -1934,7 +2012,7 @@
 				}
 			}
 		}
-		/*===================================================================*/	
+		/**===================================================================*/
 
 
 		/**==================================================================
@@ -1951,7 +2029,8 @@
 			{
 				if(!$p_matched)
 				{
-					error_log(__FILE__.' name '.$p_attribute.' not defined in matchcode array');die();
+					error_log(__FILE__.' name '.$p_attribute.' not defined in matchcode array');
+                    die();
 				}	
 			}
 			else
@@ -1973,8 +2052,9 @@
 					error_log(__FILE__.' name '.$p_attribute.' not readable');die();
 				}
 			}
+            return null;
 		}
-		/*===================================================================*/	
+		/**===================================================================*/
 		
 				
 		/**
@@ -2027,9 +2107,9 @@
 		public function define_nb_line($p_nb_line)
 		{
 			$this->c_nb_line = $p_nb_line;
-			$this->c_limit_max = $this->c_nb_line;
+			$this->c_limit_max = $p_nb_line;
 		}		
-		/*===================================================================*/
+		/**===================================================================*/
 		
 		
 		/**
@@ -2058,7 +2138,7 @@
 			$this->c_lmod_specified_width = $p_width;
 		}		
 		
-		/*===================================================================*/	
+		/**===================================================================*/
 		
 		
 		/**==================================================================
@@ -2085,40 +2165,41 @@
 			return $qtt;
 		}
 
-		private function convertBBCodetoHTML($txt)
+		private function convertBBCodetoHTML($p_text)
 		{
-			$remplacement=true;
-			while($remplacement)
-			{
-				$remplacement=false;
-				$oldtxt=$txt;
-				$txt = preg_replace('`\[BBTITRE\]([^\[]*)\[/BBTITRE\]`i','<b><u><span class="bbtitre">\\1</span></u></b>',$txt);
-				$txt = preg_replace('`\[EMAIL\]([^\[]*)\[/EMAIL\]`i','<a href="mailto:\\1">\\1</a>',$txt);
-				$txt = preg_replace('`\[b\]([^\[]*)\[/b\]`i','<b>\\1</b>',$txt);
-				$txt = preg_replace('`\[i\]([^\[]*)\[/i\]`i','<i>\\1</i>',$txt);
-				$txt = preg_replace('`\[u\]([^\[]*)\[/u\]`i','<u>\\1</u>',$txt);
-				$txt = preg_replace('`\[s\]([^\[]*)\[/s\]`i','<label style="text-decoration:line-through;">\\1</label>',$txt);
-				$txt = preg_replace('`\[br\]`','<br>',$txt);
-				$txt = preg_replace('`\[center\]([^\[]*)\[/center\]`','<div style="text-align: center;">\\1</div>',$txt);
-				$txt = preg_replace('`\[left\]([^\[]*)\[/left\]`i','<div style="text-align: left;">\\1</div>',$txt);
-				$txt = preg_replace('`\[right\]([^\[]*)\[/right\]`i','<div style="text-align: right;">\\1</div>',$txt);
-				$txt = preg_replace('`\[img\]([^\[]*)\[/img\]`i','<img src="\\1" alt=""/>',$txt);
-				$txt = preg_replace('`\[color=([^[]*)\]([^[]*)\[/color\]`i','<span style="color:\\1;">\\2</span>',$txt);
-				$txt = preg_replace('`\[bg=([^[]*)\]([^[]*)\[/bg\]`i','<span style="background-color: \\1;">\\2</span>',$txt);
-				$txt = preg_replace('`\[size=([^[]*)\]([^[]*)\[/size\]`i','<span style="size:"\\1px;">\\2</span>',$txt);
-				$txt = preg_replace('`\[font=([^[]*)\]([^[]*)\[/font\]`i','<font face="\\1">\\2</font>',$txt);
-				//$txt = preg_replace('`\[url\]([^\[]*)\[/url\]`i','<a  target="_blank" href="\\1">\\1</a>',$txt);
-				$txt = preg_replace('`\[url\]([^\[]*)\[/url\]`i','<a target="_blank" href="\\1">\\1</a>',$txt);
-				$txt = preg_replace('`\[url=([^[]*)\]([^[]*)\[/url\]`i','<a target="_blank" href="\\1">\\2</a>',$txt);
-				
-				if ($oldtxt<>$txt)
-				{
-					$remplacement=true;
-				}
-			}
-			return $txt;
+            $p_text = preg_replace('`\[email\](.*?(\[/email\]\[/email\].*?)*)\[/email\](?!(\[/email\]))`ie','"<a href=\"mailto:".str_replace("[/email][/email]","[/email]","\\1")."\">".str_replace("[/email][/email]","[/email]","\\1")."</a>"',$p_text);
+            $p_text = preg_replace('`\[b\](.*?(\[/b\]\[/b\].*?)*)\[/b\](?!(\[/b\]))`ie','"<b>".str_replace("[/b][/b]","[/b]","\\1")."</b>"',$p_text);
+            $p_text = preg_replace('`\[i\](.*?(\[/i\]\[/i\].*?)*)\[/i\](?!(\[/i\]))`ie','"<i>".str_replace("[/i][/i]","[/i]","\\1")."</i>"',$p_text);
+            $p_text = preg_replace('`\[u\](.*?(\[/u\]\[/u\].*?)*)\[/u\](?!(\[/u\]))`ie','"<u>".str_replace("[/u][/u]","[/u]","\\1")."</u>"',$p_text);
+            $p_text = preg_replace('`\[s\](.*?(\[/s\]\[/s\].*?)*)\[/s\](?!(\[/s\]))`ie','"<s>".str_replace("[/s][/s]","[/s]","\\1")."</s>"',$p_text);
+            $p_text = preg_replace('`\[center\](.*?(\[/center\]\[/center\].*?)*)\[/center\](?!(\[/center\]))`ie','"<p style=\"text-align: center;\">".str_replace("[/center][/center]","[/center]","\\1")."</p>"',$p_text);
+            $p_text = preg_replace('`\[left\](.*?(\[/left\]\[/left\].*?)*)\[/left\](?!(\[/left\]))`ie','"<p style=\"text-align: left;\">".str_replace("[/left][/left]","[/left]","\\1")."</p>"',$p_text);
+            $p_text = preg_replace('`\[right\](.*?(\[/right\]\[/right\].*?)*)\[/right\](?!(\[/right\]))`ie','"<p style=\"text-align: right;\">".str_replace("[/right][/right]","[/right]","\\1")."</p>"',$p_text);
+            $p_text = preg_replace('`\[img\](.*?(\[/img\]\[/img\].*?)*)\[/img\](?!(\[/img\]))`ie','"<img src=\"".str_replace("[/img][/img]","[/img]","\\1")."\" />"',$p_text);
+            $p_text = preg_replace('`\[color=(.*?)\](.*?(\[/color\]\[/color\].*?)*)\[/color\](?!(\[/color\]))`ie','"<font color=\"\\1\">".str_replace("[/color][/color]","[/color]","\\2")."</font>"',$p_text);
+            $p_text = preg_replace('`\[bg=(.*?)\](.*?(\[/bg\]\[/bg\].*?)*)\[/bg\](?!(\[/bg\]))`ie','"<font style=\"background-color:\\1;\">".str_replace("[/bg][/bg]","[/bg]","\\2")."</font>"',$p_text);
+            $p_text = preg_replace('`\[size=(.*?)\](.*?(\[/size\]\[/size\].*?)*)\[/size\](?!(\[/size\]))`ie','"<font size=\"\\1\">".str_replace("[/size][/size]","[/size]","\\2")."</font>"',$p_text);
+            $p_text = preg_replace('`\[font=(.*?)\](.*?(\[/font\]\[/font\].*?)*)\[/font\](?!(\[/font\]))`ie','"<font face=\"\\1\">".str_replace("[/font][/font]","[/font]","\\2")."</font>"',$p_text);
+            $p_text = preg_replace('`\[url\](.*?(\[/url\]\[/url\].*?)*)\[/url\](?!(\[/url\]))`ie','"<a target=\"_blank\" href=\"".str_replace("[/url][/url]","[/url]","\\1")."\">".str_replace("[/url][/url]","[/url]","\\1")."</a>"',$p_text);
+            $p_text = preg_replace('`\[url=(.*?)\](.*?(\[/url\]\[/url\].*?)*)\[/url\](?!(\[/url\]))`ie','"<a target=\"_blank\" href=\"\\1\">".str_replace("[/url][/url]","[/url]","\\2")."</a>"',$p_text);
+
+            //$p_text = preg_replace('`\[br\]`','<br>',$p_text);
+            //$p_text = preg_replace('`\[hr\]`','<hr>',$p_text);
+
+            // Found a randomized string do not exists in string to convert
+            $temp_str = '7634253332';while(stristr($p_text,$temp_str)){$temp_str = mt_rand();}
+            $p_text = str_replace('[br][br]',$temp_str,$p_text);
+            $p_text = preg_replace('`(?<!\[br\])\[br\](?!(\[br\]))`ie','str_replace("[br]","<br>","\\0")',$p_text);
+            $p_text = str_replace($temp_str,'[br]',$p_text);
+
+            // Found a randomized string do not exists in string to convert
+            $temp_str = '7634253332';while(stristr($p_text,$temp_str)){$temp_str = mt_rand();}
+            $p_text = str_replace('[hr][hr]',$temp_str,$p_text);
+            $p_text = preg_replace('`(?<!\[hr\])\[hr\](?!(\[hr\]))`ie','str_replace("[hr]","<hr>","\\0")',$p_text);
+            $p_text = str_replace($temp_str,'[hr]',$p_text);
+
+            return $p_text;
 		}
 		
-		/*===================================================================*/	
+		/**===================================================================*/
 	}
-?>

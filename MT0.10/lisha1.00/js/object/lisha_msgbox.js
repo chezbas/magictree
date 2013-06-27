@@ -102,7 +102,7 @@
 	    	{
     			msgbox_html += '<td>';
     	    	msgbox_html += '<table class="lisha_msgbox_tab_btn">';
-    	    	msgbox_html += '<tr tabindex=10000 id="lisha_'+lisha_id+'_msgbox_btn'+i+'" onmouseover="lisha_msgbox_hover('+i+',\''+lisha_id+'\');" onmouseout="lisha_msgbox_out('+i+',\''+lisha_id+'\');" onMouseDown="return false;" onkeyup="lisha_msgbox_keypress(event,\''+lisha_id+'\');" onclick="javascript:'+aff_btn[1][i]+'">'; //SRX_ADD_ONKEYDOWN_EVENT
+    	    	msgbox_html += '<tr tabindex=10000 id="lisha_'+lisha_id+'_msgbox_btn'+i+'" onmouseover="lisha_msgbox_hover('+i+',\''+lisha_id+'\');" onmouseout="lisha_msgbox_out('+i+',\''+lisha_id+'\');" onMouseDown="return false;" onkeypress="lisha_msgbox_keypress(event,\''+lisha_id+'\');" onclick="javascript:'+aff_btn[1][i]+'">'; //SRX_ADD_ONKEYDOWN_EVENT
     	    	msgbox_html += '<td id="btn_'+lisha_id+'_ok_g'+i+'" class="btn_ok_g"></td>';
     	    	msgbox_html += '<td id="btn_'+lisha_id+'_ok_m'+i+'" class="btn_ok_m">'+aff_btn[0][i]+'</td>';
     	    	msgbox_html += '<td id="btn_'+lisha_id+'_ok_d'+i+'" class="btn_ok_d"></td>';

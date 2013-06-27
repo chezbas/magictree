@@ -127,16 +127,14 @@ function lisha_input_line_per_page_change_ajax(lisha_id,qtt,ajax_return)
 /**==================================================================
  * lisha_refresh_page_ajax : Refresh lisha applying filter ( Restor current page to 1 )
  * @lisha_id		: internal lisha identifier
- * @qtt				: number of line by page
  * @ajax_return		: response of ajax call
  ====================================================================*/
 function lisha_refresh_page_ajax(lisha_id,ajax_return)
 {
-	
 	if(typeof(ajax_return) == 'undefined')
 	{
 		lisha_display_wait(lisha_id);
-		
+
 		lisha_execute_event(__ON_REFRESH__,__BEFORE__,lisha_id);
 
 		//==================================================================
@@ -177,7 +175,7 @@ function lisha_refresh_page_ajax(lisha_id,ajax_return)
 			lisha_hide_wait(lisha_id);
 			
 			lisha_execute_event(__ON_REFRESH__,__AFTER__,lisha_id);
-		} 
+		}
 		catch(e) 
 		{
 			lisha_display_error(lisha_id,e);

@@ -59,7 +59,8 @@
 	<head>
 		<META http-equiv="Content-Type" content="text/html; charset=UTF-8">	
 		<script type="text/javascript">
-			var language = '<?php echo $_SESSION[$ssid]['langue']; ?>';
+            var language = '<?php echo $_SESSION[$ssid]['langue']; ?>';
+            var ssid = '<?php echo $ssid; ?>';
 		</script>
 		<link rel="stylesheet" href="css/home/index.css" type="text/css"> <!-- * load custom page style * -->
 		<link rel="stylesheet" href="css/home/tiny_details.css" type="text/css"> <!-- * load custom tiny page style * -->

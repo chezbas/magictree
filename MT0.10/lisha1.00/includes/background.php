@@ -1,5 +1,4 @@
 <?php
-	
 $image = imagecreatetruecolor( 200 , 100);
 	imagesavealpha( $image, true );
 	$bg = imagecolorallocatealpha($image, 255, 255, 255, 0);
@@ -16,5 +15,3 @@ $image = imagecreatetruecolor( 200 , 100);
 	
 	header("Content-type: image/png");
 	Imagepng($image);
-
-?>

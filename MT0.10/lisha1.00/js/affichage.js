@@ -15,24 +15,22 @@ var lisha_doc_export = '';
 var lisha_timer_check_export_done = '';
 /**==================================================================*/
 
+
 /**==================================================================
  * Resize a column to smallest size.
- * 
  * @param column id of the column in resize
  * @param lisha_id Id of the lisha
-====================================================================*/
-function lisha_mini_size_column(column,lisha_id)
-{
-	document.getElementById('th'+column+'_'+lisha_id).style.width = document.getElementById('span_'+column+'_'+lisha_id).offsetWidth+'px';
-	
-	lisha_column_resize = column;
-	lisha_id_resize = lisha_id;
-	lisha_column_in_resize = true;
+ ====================================================================*/
+function lisha_mini_size_column(column, lisha_id) {
+    document.getElementById('th' + column + '_' + lisha_id).style.width = document.getElementById('span_' + column + '_' + lisha_id).offsetWidth + 'px';
+    lisha_column_resize = column;
+    lisha_id_resize = lisha_id;
 
-	lisha_size_start = document.getElementById('th'+column+'_'+lisha_id).offsetWidth;
-	click_id_column = 'th'+(column)+'_'+lisha_id;
-	size_table(lisha_id);
-	lisha_column_in_resize = false;
+    lisha_column_in_resize = true;
+    lisha_size_start = document.getElementById('th' + column + '_' + lisha_id).offsetWidth;
+    click_id_column = 'th' + (column) + '_' + lisha_id;
+    size_table(lisha_id);
+    lisha_column_in_resize = false;
 }
 /**==================================================================*/
 
@@ -134,7 +132,6 @@ function export_list(lisha_id,ajax_return)
 /**==================================================================
  * cancel_export	: Cancel export on first step
  * @lisha_id	: internal lisha identifier
- * @ajax_return : return ajax if any
  ====================================================================*/
 function cancel_export(lisha_id)
 {
@@ -176,7 +173,7 @@ function launch_export(lisha_id, total)
  ====================================================================*/
 function initial_export_box(lisha_id, total)
 {
-	if(lisha_doc_export == undefined)
+    if(lisha_doc_export == undefined)
 	{
 		var prompt_btn = new Array([lis_lib[31]],["lisha_cover_with_filter('"+lisha_id+"');"]);
 		
@@ -287,7 +284,9 @@ function lisha_checkbox(line,evt,checkbox,id)
 
 				document.getElementById('chk_l'+line+'_c0_'+id).checked = false;
 				
-				eval('lisha.'+id+'.selected_line.L'+line+'.selected = false;');
+				//eval('lisha.'+id+'.selected_line.L'+line+'.selected = false;');
+				eval('delete lisha.'+id+'.selected_line.L'+line+';');
+				
 				if(count_selected_lines(id) == 0)
 				{
 					if(document.getElementById('lisha_td_toolbar_edit_'+id))document.getElementById('lisha_td_toolbar_edit_'+id).className = 'btn_toolbar grey_el';
@@ -355,7 +354,9 @@ function lisha_checkbox(line,evt,checkbox,id)
 						var jsoncolorindex = eval('lisha.'+id+'.lines.L'+i+'.colorkey');
 						document.getElementById('l'+i+'_'+id).className = 'lc_'+jsoncolorindex+'_'+id;
 
-						eval('lisha.'+id+'.selected_line.L'+i+'.selected = false;');
+						//eval('lisha.'+id+'.selected_line.L'+i+'.selected = false;');
+						eval('delete lisha.'+id+'.selected_line.L'+i+';');
+						
 					}
 					if(count_selected_lines(id) == 0)
 					{
@@ -387,7 +388,9 @@ function lisha_checkbox(line,evt,checkbox,id)
 					// Unselect
 					document.getElementById('l'+line+'_'+id).className = 'lc_'+jsoncolorindex+'_'+id;
 
-					eval('lisha.'+id+'.selected_line.L'+line+'.selected = false;');
+					//eval('lisha.'+id+'.selected_line.L'+line+'.selected = false;');
+					eval('delete lisha.'+id+'.selected_line.L'+line+';');
+					
 					if(count_selected_lines(id) == 0)
 					{
 						if(document.getElementById('lisha_td_toolbar_edit_'+id))document.getElementById('lisha_td_toolbar_edit_'+id).className = 'btn_toolbar grey_el';
@@ -543,7 +546,7 @@ function lisha_load_filter_lov(lisha_id,lisha_type,ajax_return)
 		//==================================================================
 		// Setup Ajax configuration
 		//==================================================================
-		var conf = new Array();	
+		var conf = [];
 		
 		conf['page'] = eval('lisha.'+lisha_id+'.dir_obj')+'/ajax/internal.php';
 		conf['delai_tentative'] = 5000;
@@ -662,7 +665,7 @@ function lisha_hide_display_col_lov(lisha_id,lisha_type,ajax_return)
 		/**==================================================================
 		 * Ajax init
 		 ====================================================================*/	
-		var conf = new Array();	
+		var conf = [];
 		
 		conf['page'] = eval('lisha.'+lisha_id+'.dir_obj')+'/ajax/internal.php';
 		conf['delai_tentative'] = 6000;
@@ -710,7 +713,7 @@ function lisha_hide_display_col_lov(lisha_id,lisha_type,ajax_return)
 }
 
 /**==================================================================
- * lisha_load_filter : event when click on a line
+ * function call when user click on a line
  * @lisha_id 	: parent lisha id
  * @filter_name : filter name to restore
  * @ajax_return : filled with ajax call back return
@@ -729,7 +732,7 @@ function lisha_load_filter(lisha_id,filter_name,ajax_return)
 		//==================================================================
 		// Setup Ajax configuration
 		//==================================================================
-		var conf = new Array();	
+		var conf = [];
 		
 		conf['page'] = eval('lisha.'+lisha_id+'.dir_obj')+'/ajax/ajax_page.php';
 		conf['delai_tentative'] = 6000;
@@ -977,12 +980,11 @@ function lisha_StopEventHandler(evt)
     }
 }
 
-/**
+/**==================================================================
  * Get the position of an element in reference to the body.
- * 
- * @param id Id of the element
- * @returns {Array} 0 => left, 1 => top
- */
+ * @id  : Dom id of element
+ * return array position (left,top)
+ ====================================================================*/
 function lisha_getPosition(id)
 {
 	var left = 0;
@@ -1014,14 +1016,14 @@ function lisha_getPosition(id)
 	
 	return tab;
 }
+/**==================================================================*/
 
 
-/**
- * Toggle the column menu
- * 
- * @param id Id of the lisha
- * @param column  Column of the menu
- */
+/**==================================================================
+ * Toggle column menu
+ * @id      : Internal lisha id
+ * @column  : Column to display menu
+ ====================================================================*/
 function lisha_toggle_header_menu(id,column)
 {
 	eval('lisha.'+id+'.stop_click_event = true;');
@@ -1163,11 +1165,39 @@ function lisha_toggle_header_menu(id,column)
 			
 		
 			// Hide column
-			if(eval('lisha.'+id+'.c_col_return_id') != column)
+			// Do not display if this column is default focus column
+			if(eval('lisha.'+id+'.c_col_return_id') != column && column != eval('lisha.'+id+'.default_input_focus'))
 			{
 				obj.add_sep();
 				obj.add_line(lis_lib[20],'__'+eval('lisha.'+id+'.theme')+'_ico __'+eval('lisha.'+id+'.theme')+'_ico_sort-hide','lisha_toggle_column(\''+id+'\','+column+');/*msgbox(\''+id+'\',lis_lib[20],lis_lib[20]);*/',true);
 			}
+		}
+		else
+		{
+			// SRX
+			// Caution _child_child
+			// Specific menu for CMOD lisha
+			/*obj.add_sep();
+			var is_lovable = eval('lisha.'+id+'.columns.c'+column+'.is_lovable');
+			
+			if(is_lovable != undefined && is_lovable == true)
+			{
+				var line_enable = true;
+			}
+			else
+			{
+				var line_enable = false;
+			}
+
+			if(eval('lisha.'+id+'.columns.c'+column+'.lov_title') == eval('undefined'))
+			{
+				obj.add_line(lis_lib[44],'__'+eval('lisha.'+id+'.theme')+'_ico __'+eval('lisha.'+id+'.theme')+'_ico_values','lisha_display_internal_lis(\''+id+'\',__POSSIBLE_VALUES__,'+column+');',line_enable);
+			}
+			else
+			{
+				obj.add_line(eval('lisha.'+id+'.columns.c'+column+'.lov_title'),'__'+eval('lisha.'+id+'.theme')+'_ico __'+eval('lisha.'+id+'.theme')+'_ico_values','lisha_display_internal_lis(\''+id+'\',__POSSIBLE_VALUES__,'+column+');',line_enable);
+			}
+			*/
 		}
 		/**==================================================================*/
 		
@@ -1214,6 +1244,7 @@ function lisha_toggle_header_menu(id,column)
 		div_menu.style.display = 'none';
 	}
 }
+/**==================================================================*/
 
 function lisha_generate_calendar(lisha_id,column,ajax_return)
 {
@@ -1225,7 +1256,7 @@ function lisha_generate_calendar(lisha_id,column,ajax_return)
 		/**==================================================================
 		 * Ajax init
 		 ====================================================================*/	
-		var conf = new Array();	
+		var conf = [];
 		
 		conf['page'] = eval('lisha.'+lisha_id+'.dir_obj')+'/ajax/ajax_page.php';
 		conf['delai_tentative'] = 15000;
@@ -1510,7 +1541,14 @@ function lisha_prompt(id_lisha,title,txt,button)
  ====================================================================*/
 function lisha_cover_with_filter(lisha_id)
 {
-	var scrowl_xpos = document.getElementById('liste_'+lisha_id).scrollLeft;
+	if(document.getElementById('liste_'+lisha_id) == undefined)
+	{
+		var scrowl_xpos = 0;
+	}
+	else
+	{
+		var scrowl_xpos = document.getElementById('liste_'+lisha_id).scrollLeft;
+	}
 
 	var theme = eval('lisha.'+lisha_id+'.theme');
 	var footer_height;
@@ -1519,15 +1557,16 @@ function lisha_cover_with_filter(lisha_id)
 	{
 		document.getElementById('lis__'+theme+'__hide_container_'+lisha_id+'__').style.top = document.getElementById('lisha_toolbar_'+lisha_id).offsetTop+'px';
 		document.getElementById('lis__'+theme+'__hide_container_'+lisha_id+'__').style.width = document.getElementById('liste_'+lisha_id).offsetWidth+'px';
+		
 		if (document.getElementById('lisha_footer_page_selection_'+lisha_id) != undefined)	// SRX_FOOTER_PAGE_JS_ERROR
 		{
 			footer_height = document.getElementById('lisha_footer_page_selection_'+lisha_id).offsetTop;
+			document.getElementById('lis__'+theme+'__hide_container_'+lisha_id+'__').style.height = footer_height-document.getElementById('lisha_ajax_return_'+lisha_id).offsetTop+50+'px';
 		}
 		else
 		{
 			footer_height = 0;
 		}
-		document.getElementById('lis__'+theme+'__hide_container_'+lisha_id+'__').style.height = footer_height-document.getElementById('lisha_ajax_return_'+lisha_id).offsetTop+50+'px';
 		document.getElementById('lis__'+theme+'__hide_container_'+lisha_id+'__').style.display = 'block';
 	}
 	else
@@ -1540,18 +1579,18 @@ function lisha_cover_with_filter(lisha_id)
 		
 		// Erase the content of the msgbox div
 		lisha_set_innerHTML('lis_msgbox_conteneur_'+lisha_id,'');
-	}
 
-	// Back to default focued column : SRX_DEFAULT_FOCUS_COLUMN
-	var my_default_focus_column = eval('lisha.'+lisha_id+'.default_input_focus');
-	if(my_default_focus_column != false) // Check if a focus column is found
-	{
-		var myfocus = 'th_input_'+my_default_focus_column+'__'+lisha_id;
-		
-		// Possible if column is hidden
-		if(document.getElementById(myfocus) != undefined)
+		// Back to default focued column : SRX_DEFAULT_FOCUS_COLUMN
+		var my_default_focus_column = eval('lisha.'+lisha_id+'.default_input_focus');
+		if(my_default_focus_column != false) // Check if a focus column is found
 		{
-			document.getElementById(myfocus).focus();
+			var myfocus = 'th_input_'+my_default_focus_column+'__'+lisha_id;
+			
+			// Possible if column is hidden
+			if(document.getElementById(myfocus) != undefined)
+			{
+				document.getElementById(myfocus).focus();
+			}
 		}
 	}
 	
@@ -1576,26 +1615,32 @@ function lisha_display_prompt_create_filter(id_lisha)
 	lisha_prompt(id_lisha,3,30,prompt_btn);
 }
 
+
+/**==================================================================
+ * Call when user try to save a filter
+ * @lisha_id 	: lisha internal identifier
+ * @ajax_return : null on original call then contains json php return of ajax call
+ ====================================================================*/
 function lisha_save_filter(lisha_id,ajax_return)
 {
 	if(typeof(ajax_return) == 'undefined')
 	{
-		/**==================================================================
-		 * Get name of the filter
-		 ====================================================================*/	
+        //==================================================================
+        // Get name of the filter
+        //==================================================================
 		var input_value = encodeURIComponent(document.getElementById('lisha_'+lisha_id+'_msgbox_prompt_value').value);
 		lisha_cover_with_filter(lisha_id);
-		/**==================================================================*/
-		
+        //==================================================================
+
 		//==================================================================
 		// Setup Ajax configuration
 		//==================================================================
-		var conf = new Array();	
+		var conf = [];
 		
 		conf['page'] = eval('lisha.'+lisha_id+'.dir_obj')+'/ajax/ajax_page.php';
 		conf['delai_tentative'] = 15000;
 		conf['max_tentative'] = 4;
-		conf['type_retour'] = false;		// ReponseText
+		conf['type_retour'] = false;		// Reponse Text
 		conf['param'] = 'lisha_id='+lisha_id+'&ssid='+eval('lisha.'+lisha_id+'.ssid')+'&action=7&name='+input_value;
 		conf['fonction_a_executer_reponse'] = 'lisha_save_filter';
 		conf['param_fonction_a_executer_reponse'] = "'"+lisha_id+"'";
@@ -1624,24 +1669,36 @@ function lisha_save_filter(lisha_id,ajax_return)
 		}
 	}
 }
+/**==================================================================*/
 
-function lisha_display_wait(id_lisha)
+
+/**==================================================================
+ * Standard function to display wait window
+ * @lisha_id 	: lisha internal identifier
+ ====================================================================*/
+function lisha_display_wait(lisha_id )
 {
-	lisha_cover_with_filter(id_lisha);
+	lisha_cover_with_filter(lisha_id );
 	
-	var theme = eval('lisha.'+id_lisha+'.theme');
+	var theme = eval('lisha.'+lisha_id +'.theme');
 
-	if(document.getElementById('lis__'+theme+'__hide_container_'+id_lisha+'__').style.display == '' || document.getElementById('lis__'+theme+'__hide_container_'+id_lisha+'__').style.display == 'none')
+	if(document.getElementById('lis__'+theme+'__hide_container_'+lisha_id +'__').style.display == '' || document.getElementById('lis__'+theme+'__hide_container_'+lisha_id +'__').style.display == 'none')
 	{
-		document.getElementById('lis__'+theme+'__wait_'+id_lisha+'__').style.display = 'none';
+		document.getElementById('lis__'+theme+'__wait_'+lisha_id +'__').style.display = 'none';
 	}
 	else
 	{
-		document.getElementById('lis__'+theme+'__wait_'+id_lisha+'__').style.display = '';
-		document.getElementById('lis__'+theme+'__wait_'+id_lisha+'__').style.margin = ((document.getElementById('lis__'+theme+'__hide_container_'+id_lisha+'__').offsetHeight-document.getElementById('lis__'+theme+'__wait_'+id_lisha+'__').offsetHeight)/2)+'px 0 0 '+((document.getElementById('liste_'+id_lisha).offsetWidth-document.getElementById('lis__'+theme+'__wait_'+id_lisha+'__').offsetWidth)/2)+'px';
+		document.getElementById('lis__'+theme+'__wait_'+lisha_id +'__').style.display = '';
+		document.getElementById('lis__'+theme+'__wait_'+lisha_id +'__').style.margin = ((document.getElementById('lis__'+theme+'__hide_container_'+lisha_id +'__').offsetHeight-document.getElementById('lis__'+theme+'__wait_'+lisha_id +'__').offsetHeight)/2)+'px 0 0 '+((document.getElementById('liste_'+lisha_id ).offsetWidth-document.getElementById('lis__'+theme+'__wait_'+lisha_id +'__').offsetWidth)/2)+'px';
 	}
 }
+/**==================================================================*/
 
+
+/**==================================================================
+ * Standard function to hide wait window
+ * @lisha_id 	: lisha internal identifier
+ ====================================================================*/
 function lisha_hide_wait(lisha_id)
 {
 	var theme = eval('lisha.'+lisha_id+'.theme');
@@ -1657,6 +1714,8 @@ function lisha_hide_wait(lisha_id)
 	
 	document.getElementById('lis__'+theme+'__wait_'+lisha_id+'__').style.display = 'none';
 }
+/**==================================================================*/
+
 
 function lisha_display_error(id_lisha,e,more)
 {

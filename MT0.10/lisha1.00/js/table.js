@@ -11,9 +11,8 @@ function lisha_get_size_header(column,lisha_id)
 	 ====================================================================*/	
 	var PosHeader_th0 = lisha_getPosition('th_0_'+column+'_'+lisha_id);
 	var PosHeader_th4 = lisha_getPosition('th_4_'+column+'_'+lisha_id);
-	var size_header = PosHeader_th4[0] - PosHeader_th0[0];
-	
-	return size_header;
+
+	return PosHeader_th4[0] - PosHeader_th0[0];
 	/**==================================================================*/	
 }
 
@@ -30,9 +29,8 @@ function lisha_get_size_data(column,lisha_id)
 	 ====================================================================*/	
 	var PosData_th0 = lisha_getPosition('td_0_'+column+'_'+lisha_id);
 	var PosData_th3 = lisha_getPosition('td_3_'+column+'_'+lisha_id);
-	var size_data = PosData_th3[0] - PosData_th0[0];
-	
-	return size_data;
+
+	return PosData_th3[0] - PosData_th0[0];
 	/**==================================================================*/	
 }
 
@@ -42,7 +40,6 @@ function lisha_get_size_data(column,lisha_id)
  * Set the innerHTML of an element
  * @param el element id
  * @param val Value to set
- * @returns
  */
 function lisha_set_innerHTML(el,val)
 {
@@ -61,7 +58,6 @@ function lisha_set_innerHTML(el,val)
  * Set the display style of an element
  * @param el element id
  * @param val Value to set
- * @returns
  */
 function lisha_set_style_display(el,val)
 {
@@ -78,7 +74,7 @@ function size_table(lisha_id)
 	{
 		/**==================================================================
 		 * Size the first column (checkbox column)
-		 ====================================================================*/	
+		 ====================================================================*/
 		if(lisha_get_el_offsetWidth('div_td_l1_c0_'+lisha_id) > lisha_get_el_offsetWidth('th0_'+lisha_id))
 		{
 			// Data is larger than header, resize header
@@ -89,38 +85,38 @@ function size_table(lisha_id)
 			// Header is larger than data, resize data
 			lisha_set_el_width('div_td_l1_c0_'+lisha_id,lisha_get_el_offsetWidth('th0_'+lisha_id),'px');
 		}
-		/**==================================================================*/	
-		
+		/**==================================================================*/
+
 		// Size min of a column (in px)
 		var size_min = 100;
-		
+
 		/**==================================================================
 		 * Browse and size all columns
-		 ====================================================================*/	
-		for(var iterable_element in eval('lisha.'+lisha_id+'.columns')) 
+		 ====================================================================*/
+		for(var iterable_element in eval('lisha.'+lisha_id+'.columns'))
 		{
 			if(eval('lisha.'+lisha_id+'.columns.'+iterable_element+'.id') != undefined)
 			{
 				element_id = eval('lisha.'+lisha_id+'.columns.'+iterable_element+'.id');
 				/**==================================================================
 				 * Get the size of the header
-				 ====================================================================*/	
+				 ====================================================================*/
 				var size_header = lisha_get_size_header(iterable_element,lisha_id);
-				/**==================================================================*/	
-				
+				/**==================================================================*/
+
 				/**==================================================================
 				 * Get the size of the data
-				 ====================================================================*/	
+				 ====================================================================*/
 				var size_data = lisha_get_size_data(iterable_element,lisha_id);
-				/**==================================================================*/	
-				
+				/**==================================================================*/
+
 				if(size_data < size_min && size_header < size_min)
 				{
 					// Header and data are too short. Initialise to the size_min value
-					
+
 					// Resize the header
 					lisha_set_el_width('th'+element_id+'_'+lisha_id,lisha_get_el_offsetWidth('th'+element_id+'_'+lisha_id)+size_min-size_header,'px');
-					
+
 					// Resize the data (-11 is the size of td_0_c1_lisha_bug + td_1_c1_lisha_bug padding + td_2_c1_lisha_bug + td_3_c1_lisha_bug)
 					lisha_set_el_width('div_td_l1_c'+element_id+'_'+lisha_id,lisha_get_size_header(iterable_element,lisha_id)-11,'px');
 				}
@@ -133,14 +129,14 @@ function size_table(lisha_id)
 						{
 							/**==================================================================
 							 * Column manual resize
-							 ====================================================================*/	
+							 ====================================================================*/
 							if(size_header < size_min)
 							{
 								// Header is too short. Initialise to the size_min value
-								
+
 								// Resize the header
 								lisha_set_el_width('th'+element_id+'_'+lisha_id,lisha_get_el_offsetWidth('th'+element_id+'_'+lisha_id)+size_min-size_header,'px');
-								
+
 								// resize data content
 								lisha_set_el_width('div_td_l1_c'+element_id+'_'+lisha_id,lisha_get_size_header(iterable_element,lisha_id)-11,'px');
 							}
@@ -150,8 +146,8 @@ function size_table(lisha_id)
 								window.status = size_header-(size_header-lisha_get_el_offsetWidth('th'+element_id+'_'+lisha_id));
 								lisha_set_el_width('div_td_l1_c'+element_id+'_'+lisha_id,lisha_get_size_header(iterable_element,lisha_id)-11,'px');
 							}
-							
-							
+
+
 							// Control the size of the data
 							if(lisha_get_el_offsetWidth('div_td_l1_c'+element_id+'_'+lisha_id) < lisha_get_el_offsetWidth('div_td_l2_c'+element_id+'_'+lisha_id))
 							{
@@ -159,7 +155,7 @@ function size_table(lisha_id)
 								lisha_set_el_width('th'+element_id+'_'+lisha_id,(lisha_get_size_data(iterable_element,lisha_id)-(lisha_get_size_header(iterable_element,lisha_id)-lisha_get_el_offsetWidth('th'+element_id+'_'+lisha_id))),'px');
 								lisha_set_el_width('div_td_l1_c'+element_id+'_'+lisha_id,lisha_get_el_offsetWidth('div_td_l2_c'+element_id+'_'+lisha_id),'px');
 							}
-							/**==================================================================*/	
+							/**==================================================================*/
 						}
 						else
 						{
@@ -175,35 +171,35 @@ function size_table(lisha_id)
 				}
 			}
 		}
-		/**==================================================================*/	
-	
+		/**==================================================================*/
+
 		/**==================================================================
 		 * Control free size
-		 ====================================================================*/	
+		 ====================================================================*/
 		// Get the free size of the lisha
 
-		free_size = lisha_get_el_clientWidth('liste_'+lisha_id) - lisha_get_el_clientWidth('table_liste_'+lisha_id);
-		
+		var free_size = lisha_get_el_clientWidth('liste_'+lisha_id) - lisha_get_el_clientWidth('table_liste_'+lisha_id);
+
 		if(free_size > 0)
 		{
 			// Free size available, share free size on all columns
-		
+
 			var qtt_column = eval('lisha.'+lisha_id+'.qtt_column');
 
 			// Get the size to add on each column
 			var size = Math.floor(free_size / qtt_column);
-			
+
 			// Get the free size residue
 			var residue = free_size - (size * qtt_column);
-			
+
 			/**==================================================================
 			 * Browse all column
-			 ====================================================================*/	
-			for(var iterable_element in eval('lisha.'+lisha_id+'.columns')) 
+			 ====================================================================*/
+			for(var iterable_element in eval('lisha.'+lisha_id+'.columns'))
 			{
 				// Get the element id
 				element_id = eval('lisha.'+lisha_id+'.columns.'+iterable_element+'.id');
-				
+
 				// SRX : Generate dom error on sub lisha with hidden columns if your <tr> is incompleted
 				// It seems that somethings missing in you sublisha
 				// see around switch($this->c_type_internal_lisha) in class_graphic.php
@@ -214,26 +210,26 @@ function size_table(lisha_id)
 
 					// Set data size
 					lisha_set_el_width('div_td_l1_c'+element_id+'_'+lisha_id,(lisha_get_el_offsetWidth('div_td_l1_c'+element_id+'_'+lisha_id) + size + res),'px');
-					
+
 					// Set header size
 					lisha_set_el_width('th'+element_id+'_'+lisha_id,lisha_get_el_offsetWidth('th'+element_id+'_'+lisha_id)+size+res,'px');
-					
+
 					residue--;
 				}
 			}
-			/**==================================================================*/	
+			/**==================================================================*/
 		}
-		/**==================================================================*/	
-		
+		/**==================================================================*/
+
 		/**==================================================================
 		 * Initialise position flag of the columns
-		 ====================================================================*/	
-		element_id = 0;
-		for(var iterable_element in eval('lisha.'+lisha_id+'.columns')) 
+		 ====================================================================*/
+		var element_id = 0;
+		for(var iterable_element in eval('lisha.'+lisha_id+'.columns'))
 		{
 			if(eval('lisha.'+lisha_id+'.columns.'+iterable_element+'.id') != undefined)
 			{
-				if(element_id == 0) 
+				if(element_id == 0)
 				{
 					i_last = eval('lisha.'+lisha_id+'.columns.'+iterable_element+'.id');
 				}
@@ -241,10 +237,10 @@ function size_table(lisha_id)
 				{
 					i_last = element_id;
 				}
-				
+
 				// Get the element id
 				element_id = eval('lisha.'+lisha_id+'.columns.'+iterable_element+'.id;');
-		
+
 				if(element_id == 1)
 				{
 					eval('lisha.'+lisha_id+'.columns.c'+element_id+'.min = 0;');
@@ -253,30 +249,30 @@ function size_table(lisha_id)
 				{
 					eval('lisha.'+lisha_id+'.columns.c'+element_id+'.min = '+eval('lisha.'+lisha_id+'.columns.c'+(i_last)+'.max +1'));
 				}
-				
+
 				/**==================================================================
 				 * Get the total header width of the column
-				 ====================================================================*/	
+				 ====================================================================*/
 				var width = lisha_get_size_header(iterable_element,lisha_id);
 				/**==================================================================*/
-				
+
 				// Get the left position of the column
 				var left = document.getElementById('th_0_c'+element_id+'_'+lisha_id).offsetLeft;
-				
+
 				eval('lisha.'+lisha_id+'.columns.c'+element_id+'.max = '+((width/2)+left));
 				eval('lisha.'+lisha_id+'.columns.c'+element_id+'.arrow = '+left);
 			}
 		}
-		/**==================================================================
-		 * Initialise position flag of the last column
-		 ====================================================================*/
-		last_col = eval('lisha.'+lisha_id+'.last_column;');
+        //==================================================================
+        // Initialise position flag of the last column
+        //==================================================================
+		var last_col = eval('lisha.'+lisha_id+'.last_column;');
 		eval('lisha.'+lisha_id+'.columns.c'+(last_col)+' = new Object();');
 		eval('lisha.'+lisha_id+'.columns.c'+(last_col)+'.min = '+eval('lisha.'+lisha_id+'.columns.c'+element_id+'.max +1'));
 		eval('lisha.'+lisha_id+'.columns.c'+(last_col)+'.max = '+document.getElementById('th_0_c'+(last_col)+'_'+lisha_id).offsetLeft);
 		eval('lisha.'+lisha_id+'.columns.c'+(last_col)+'.arrow = '+document.getElementById('th_0_c'+(last_col)+'_'+lisha_id).offsetLeft);
-		/**==================================================================*/
-	
+        //==================================================================
+
 		/**==================================================================*/
 	}
 	else
@@ -284,26 +280,26 @@ function size_table(lisha_id)
 		// No line on the lisha
 		/**==================================================================
 		 * Control free size
-		 ====================================================================*/	
+		 ====================================================================*/
 		free_size = 0;
-		
+
 		// Get the free size of the lisha header
 		free_size = lisha_get_el_clientWidth('liste_'+lisha_id) - lisha_get_el_clientWidth('tr_header_input_'+lisha_id)+203;
-		
+
 		if(free_size > 0)
 		{
 			// Free size available, share free size on all columns
-		
+
 			var qtt_column = eval('lisha.'+lisha_id+'.qtt_column');
-			
+
 			// Get the size to add on each column
 			var size = Math.floor(free_size / qtt_column);
 			// Get the free size residue
 			var residue = free_size - (size * qtt_column);
 			/**==================================================================
 			 * Browse all column
-			 ====================================================================*/	
-			for(var iterable_element in eval('lisha.'+lisha_id+'.columns')) 
+			 ====================================================================*/
+			for(var iterable_element in eval('lisha.'+lisha_id+'.columns'))
 			{
 				// Get the element id
 				element_id = eval('lisha.'+lisha_id+'.columns.'+iterable_element+'.id');
@@ -313,12 +309,12 @@ function size_table(lisha_id)
 					(residue > 1) ? res = 1 : res = 0;
 					// Set header size
 					lisha_set_el_width('th'+element_id+'_'+lisha_id,lisha_get_el_offsetWidth('th'+element_id+'_'+lisha_id)+size+res,'px');
-					
+
 					residue--;
 				}
 			}
-			/**==================================================================*/	
+			/**==================================================================*/
 		}
-		/**==================================================================*/	
+		/**==================================================================*/
 	}
 }

@@ -103,7 +103,8 @@ td.__blue_table_page_selection:hover
 div.__blue_column_title
 {
 	cursor:pointer;
-	line-height: 20px;
+    height: 20px;
+    line-height: 20px;
 	font-size: 0.7em;
 	font-weight:bold;
 	font-family: tahoma, arial, helvetica, sans-serif;
