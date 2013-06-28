@@ -23,10 +23,10 @@
 	//==================================================================
 	$query = "	SELECT
 					`".__MAGICTREE_TABLE_EXTRA_TICK__."`.`ID` AS 'id',
-					TEXD.`text` AS 'business',
+					`TEXD`.`text` AS 'business',
 					`".__MAGICTREE_TABLE_EXTRA_TICK__."`.`Type` AS 'type',
 					-- `".__MAGICTREE_TABLE_EXTRA_TICK__."`.`Classe` AS 'classe',
-					TEXC.`text` AS 'classe',
+					`TEXC`.`text` AS 'classe',
 					`".__MAGICTREE_TABLE_EXTRA_TICK__."`.`Version` AS 'version',
 					DATE_FORMAT(`".__MAGICTREE_TABLE_EXTRA_TICK__."`.`DateCrea`,'%Y-%m%-%d') AS 'DateCrea',
 					(
@@ -302,9 +302,15 @@
     // Native field name in main table
     // Optional declaration but can provide fast response time
     // Don't add anything here if your have a doubt
-    // null means use main table name
+    // null in table_name_space means use main table name ( update table name )
+    // Do not add primary key already define by define_key function
+    // Do not add any field with transformation ( eg: CONCATE('--','id','---') AS 'custom' )
     //==================================================================
-    $obj_lisha_bug->define_fast_field(Array());
+    $obj_lisha_bug->define_fast_field(
+                                        Array(__MAGICTREE_TABLE_EXTRA_TICK__,'id'),
+                                        Array('TEXD','business'),
+                                        Array('TEXC','classe')
+                                        );
     //==================================================================
 
 	//==================================================================
