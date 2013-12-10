@@ -65,9 +65,9 @@ boucle = 0
 while boucle < nbLoopMax:
     
     switchApp('Firefox') 
-    wait("pzSQL4Reehct-1.png",10)
+    wait(Pattern("pzSQL4Reehct-1.png").similar(0.57),10)
     
-    click("pzSQL4Reehct.png")
+    click(Pattern("pzSQL4Reehct.png").similar(0.54))
     click("Excuteruneou.png")
     query_begin = 'SELECT MT.title, MT.`id`,ROUND( RAND( ) *100000) RANDOM FROM `mt_caption` MT WHERE 1 = 1 AND language = "'
     query_end = '" ORDER BY RANDOM'

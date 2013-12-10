@@ -15,16 +15,16 @@
 [log] CLICK on (586,497)
 [log] CLICK on (590,547)
 [log] CLICK on (850,622)
-[log] CLICK on (83,347)
+[log] CLICK on (83,351)
 [log] App.focus Firefox(0) #0
 [log] openApp: "Firefox"
-[log] CLICK on (393,174)
+[log] CLICK on (397,174)
 [log] CLICK on (325,264)
 [log] CLICK on (1366,521)
 [log] RIGHT CLICK on (259,640)
 [log] CLICK on (370,871)
 [log] CLICK on (165,822)
-[log] DOUBLE CLICK on (193,837)
+[log] DOUBLE CLICK on (194,836)
 [log] ?+TYPE "c"
 [log] App.focus Safari(0) #0
 [log] openApp: "Safari"
@@ -52,13 +52,13 @@
 Occurence number : 1
 [log] App.focus Firefox(0) #0
 [log] openApp: "Firefox"
-[log] CLICK on (394,174)
+[log] CLICK on (401,174)
 [log] CLICK on (325,264)
 [log] CLICK on (1366,521)
 [log] RIGHT CLICK on (259,640)
 [log] CLICK on (370,871)
 [log] CLICK on (165,822)
-[log] DOUBLE CLICK on (193,837)
+[log] DOUBLE CLICK on (194,836)
 [log] ?+TYPE "c"
 [log] App.focus Safari(0) #0
 [log] openApp: "Safari"
@@ -86,13 +86,13 @@ Occurence number : 1
 Occurence number : 2
 [log] App.focus Firefox(0) #0
 [log] openApp: "Firefox"
-[log] CLICK on (394,174)
+[log] CLICK on (401,174)
 [log] CLICK on (325,264)
 [log] CLICK on (1366,521)
 [log] RIGHT CLICK on (259,640)
 [log] CLICK on (370,871)
 [log] CLICK on (165,822)
-[log] DOUBLE CLICK on (193,837)
+[log] DOUBLE CLICK on (194,836)
 [log] ?+TYPE "c"
 [log] App.focus Safari(0) #0
 [log] openApp: "Safari"
@@ -120,13 +120,13 @@ Occurence number : 2
 Occurence number : 3
 [log] App.focus Firefox(0) #0
 [log] openApp: "Firefox"
-[log] CLICK on (394,174)
+[log] CLICK on (401,174)
 [log] CLICK on (325,264)
 [log] CLICK on (1366,521)
 [log] RIGHT CLICK on (259,640)
 [log] CLICK on (370,871)
 [log] CLICK on (165,822)
-[log] DOUBLE CLICK on (193,837)
+[log] DOUBLE CLICK on (194,836)
 [log] ?+TYPE "c"
 [log] App.focus Safari(0) #0
 [log] openApp: "Safari"
@@ -154,13 +154,13 @@ Occurence number : 3
 Occurence number : 4
 [log] App.focus Firefox(0) #0
 [log] openApp: "Firefox"
-[log] CLICK on (394,174)
+[log] CLICK on (401,174)
 [log] CLICK on (325,264)
 [log] CLICK on (1366,521)
 [log] RIGHT CLICK on (259,640)
 [log] CLICK on (370,871)
 [log] CLICK on (165,822)
-[log] DOUBLE CLICK on (193,837)
+[log] DOUBLE CLICK on (194,836)
 [log] ?+TYPE "c"
 [log] App.focus Safari(0) #0
 [log] openApp: "Safari"
@@ -188,13 +188,13 @@ Occurence number : 4
 Occurence number : 5
 [log] App.focus Firefox(0) #0
 [log] openApp: "Firefox"
-[log] CLICK on (394,174)
+[log] CLICK on (401,174)
 [log] CLICK on (325,264)
 [log] CLICK on (1366,521)
 [log] RIGHT CLICK on (259,640)
 [log] CLICK on (370,871)
 [log] CLICK on (165,822)
-[log] DOUBLE CLICK on (193,837)
+[log] DOUBLE CLICK on (194,836)
 [log] ?+TYPE "c"
 [log] App.focus Safari(0) #0
 [log] openApp: "Safari"
@@ -222,13 +222,13 @@ Occurence number : 5
 Occurence number : 6
 [log] App.focus Firefox(0) #0
 [log] openApp: "Firefox"
-[log] CLICK on (394,174)
+[log] CLICK on (401,174)
 [log] CLICK on (325,264)
 [log] CLICK on (1366,521)
 [log] RIGHT CLICK on (259,640)
 [log] CLICK on (370,871)
 [log] CLICK on (165,822)
-[log] DOUBLE CLICK on (193,837)
+[log] DOUBLE CLICK on (194,836)
 [log] ?+TYPE "c"
 [log] App.focus Safari(0) #0
 [log] openApp: "Safari"
@@ -256,13 +256,13 @@ Occurence number : 6
 Occurence number : 7
 [log] App.focus Firefox(0) #0
 [log] openApp: "Firefox"
-[log] CLICK on (394,174)
+[log] CLICK on (401,174)
 [log] CLICK on (325,264)
 [log] CLICK on (1366,521)
 [log] RIGHT CLICK on (259,640)
 [log] CLICK on (370,871)
 [log] CLICK on (165,822)
-[log] DOUBLE CLICK on (193,837)
+[log] DOUBLE CLICK on (194,836)
 [log] ?+TYPE "c"
 [log] App.focus Safari(0) #0
 [log] openApp: "Safari"
@@ -290,50 +290,9 @@ Occurence number : 7
 Occurence number : 8
 [log] App.focus Firefox(0) #0
 [log] openApp: "Firefox"
-[log] CLICK on (394,174)
+[log] CLICK on (401,174)
 [log] CLICK on (325,264)
 [log] CLICK on (1366,521)
 [log] RIGHT CLICK on (259,640)
 [log] CLICK on (370,871)
-[log] CLICK on (165,822)
-[log] DOUBLE CLICK on (193,837)
-[log] ?+TYPE "c"
-[log] App.focus Safari(0) #0
-[log] openApp: "Safari"
-[log] CLICK on (419,125)
-[log] CLICK on (444,123)
-[log] CLICK on (397,126)
-[log] CLICK on (377,124)
-[log] CLICK on (269,126)
-[log] ?+TYPE "v"
-[log] TYPE "
-"
-[log] CLICK on (360,122)
-[log] ?+TYPE "q"
-[log] TYPE ""
-[log] TYPE "
-"
-[log] CLICK on (315,126)
-[log] ?+TYPE "v"
-[log] CLICK on (378,124)
-[log] CLICK on (360,122)
-[log] ?+TYPE "q"
-[log] TYPE ""
-[log] TYPE "
-"
-Occurence number : 9
-[log] App.focus Firefox(0) #0
-[log] openApp: "Firefox"
-[log] CLICK on (394,174)
-[log] CLICK on (325,264)
-[log] CLICK on (1366,521)
-[log] RIGHT CLICK on (259,640)
-[log] CLICK on (370,871)
-[log] CLICK on (165,822)
-[log] DOUBLE CLICK on (193,837)
-[log] ?+TYPE "c"
-[log] App.focus Safari(0) #0
-[log] openApp: "Safari"
-[log] CLICK on (419,125)
-[log] CLICK on (444,123)
 [info] locale: fr

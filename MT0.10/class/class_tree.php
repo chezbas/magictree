@@ -12,7 +12,7 @@
 
 		private $tree_conf;				// Define table name of configuration
 		private $tree_text;				// Define table name of common tree text
-		private $tree_language;			// Define table name of language available
+		public $tree_language;			// Define table name of language available
 
 		private $total_node;			// Number of nodes in current language
 		
@@ -900,8 +900,8 @@
 		public function add_node($p_mode,$node_id,$p_caption)
 		{
 			// MySQL injection protection
-			$caption= str_replace("'","''",$this->mysql_protect($p_caption));
-	
+			$caption= $this->mysql_protect($p_caption);
+
 			switch ($p_mode)
 			{
 				case "B": // Insert a brother item
@@ -974,7 +974,7 @@
 							  NULL
 							 )
 					";
-			
+
 			$result = $this->link_mt->query($query);
 			
 			// Recover auto increment id
@@ -998,7 +998,7 @@
 							  '".$caption."'
 							 )
 					";
-			
+
 			$result = $this->link_mt->query($query);
 		
 			// Extra features table ( optional )

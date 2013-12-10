@@ -142,9 +142,9 @@ boucle = <span class="dig">0</span>
 <span class="kw">while</span> boucle &lt; nbLoopMax:
 
     switchApp(<span class="str">'Firefox'</span>)
-    <span class="skw">wait</span>(<img src="pzSQL4Reehct.png" />,<span class="dig">10</span>)
+    <span class="skw">wait</span>(Pattern(<img src="pzSQL4Reehct.png" />).similar(<span class="dig">0.51</span>),<span class="dig">10</span>)
 
-    <span class="skw">click</span>(<img src="pzSQL4Reehct.png" />)
+    <span class="skw">click</span>(Pattern(<img src="pzSQL4Reehct.png" />).similar(<span class="dig">0.53</span>))
     <span class="skw">click</span>(<img src="Excuteruneou.png" />)
 
     query_begin = <span class="str">'SELECT MT.title, MT.`id`,ROUND( RAND( ) *100000) RANDOM FROM `mt_demo_caption` MT WHERE 1 = 1 AND LENGTH(MT.`title`) &gt; 1 AND language = "'</span>
@@ -157,8 +157,9 @@ boucle = <span class="dig">0</span>
     <span class="skw">click</span>(<img src="Excuter-1.png" />)
     <span class="skw">rightClick</span>(Pattern(<img src="title.png" />).targetOffset(-<span class="dig">9</span>,<span class="dig">19</span>))
     <span class="skw">click</span>(<img src="ExaminerImen.png" />)
-    <span class="skw">click</span>(Pattern(<img src="pspanspantd.png" />).targetOffset(-<span class="dig">70</span>,-<span class="dig">4</span>))
-    <span class="skw">doubleClick</span>(Pattern(<img src="ytdvE.png" />).similar(<span class="dig">0.80</span>).targetOffset(<span class="dig">27</span>,<span class="dig">11</span>))
+    <span class="skw">click</span>(Pattern(<img src="pspanspantd.png" />).similar(<span class="dig">0.60</span>).targetOffset(-<span class="dig">70</span>,-<span class="dig">4</span>))
+    <span class="skw">doubleClick</span>(Pattern(<img src="B.png" />).targetOffset(<span class="dig">20</span>,<span class="dig">1</span>))
+
 
     <span class="cmt"># Copy label found to clipboard
 </span>    <span class="cmt">#type("q",KeyModifier.CMD)

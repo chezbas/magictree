@@ -49,7 +49,7 @@ function MT_selected_item(evt,internal_id, row_id, mode, refresh)
 
 
 /**==================================================================
- * MT_add_item : event when a new item is created
+ * MT_add_item : event call when a new item is created
  * @evt : catch event
  * @internal_id : Tree id root
  * @row_id : Node unique identifier
