@@ -15,13 +15,13 @@
 
 .TreeView_default_overflow
 {
-	float: left;
-	display: block;
-	overflow:auto;
-	top: 10%;
-	left: 0;
-    height: 90%;  
-    width: 100%; 
+    position: absolute;
+    display: block;
+    overflow:auto;
+    top: 24px;
+    left: 0;
+    bottom: 0;
+    width: 100%;
 }
 
 /*========== Waiting Ajax ============*/
