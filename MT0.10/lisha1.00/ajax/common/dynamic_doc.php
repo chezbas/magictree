@@ -27,7 +27,7 @@
 	//		keyword_valorization 	: Get keyword to force setup valorization mode
 	//		php					 	: php version
 	//		MySQL				 	: MySQL version
-	//		apache				 	: apache version
+	//		apache					: Get web page engine ( Apache, nginx.. etc.. )
 	//		version				 	: lisha version
 	//		appli					: lisha application name
 	//		browser				 	: Browser client
@@ -63,7 +63,8 @@
 				$_local_sys = $link->server_info;
 			break;
 			case 'apache':
-				$_local_sys = apache_get_version();
+				//$_local_sys = apache_get_version();
+				$_local_sys = $_SERVER["SERVER_SOFTWARE"];
 			break;
 			case 'version':
 				$_local_sys = __LISHA_APPLICATION_RELEASE__;
